@@ -6,6 +6,7 @@ export async function enqueueJob(input: {
   channelId: string;
   topic: string;
   mode?: NewJob["mode"];
+  target?: NewJob["target"];
   options?: NewJob["options"];
   scheduledAt?: Date | null;
 }): Promise<Job> {
@@ -15,6 +16,7 @@ export async function enqueueJob(input: {
       channelId: input.channelId,
       topic: input.topic,
       mode: input.mode ?? "faceless",
+      target: input.target ?? "download",
       options: input.options ?? {},
       scheduledAt: input.scheduledAt ?? null,
       status: "queued",

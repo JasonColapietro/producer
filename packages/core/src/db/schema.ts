@@ -13,13 +13,19 @@ import {
 // ── enums ────────────────────────────────────────────────────────────────────
 export const videoMode = pgEnum("video_mode", ["faceless", "avatar"]);
 
+// Where a finished video goes. "download" = build it, store the MP4, stop (you
+// upload manually — the default while YouTube API publishing is gated by audit).
+// "youtube" = auto-upload via the Data API.
+export const publishTarget = pgEnum("publish_target", ["download", "youtube"]);
+
 export const jobStatus = pgEnum("job_status", [
   "queued", // waiting for a worker
   "processing", // a worker has claimed it
   "needs_review", // assembled, waiting for human approve (if review gate on)
-  "ready", // approved, waiting to publish / scheduled
+  "ready", // approved, waiting to publish / scheduled (youtube target)
   "publishing",
   "published",
+  "completed", // built + stored, ready to download (manual-upload target)
   "failed",
 ]);
 
@@ -97,6 +103,7 @@ export const jobs = pgTable(
       .notNull()
       .references(() => channels.id, { onDelete: "cascade" }),
     mode: videoMode("mode").notNull().default("faceless"),
+    target: publishTarget("target").notNull().default("download"),
     status: jobStatus("status").notNull().default("queued"),
     stage: jobStage("stage").notNull().default("ideate"),
     topic: text("topic").notNull(),
@@ -189,6 +196,7 @@ export type Channel = typeof channels.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
 
 export type VideoMode = (typeof videoMode.enumValues)[number];
+export type PublishTarget = (typeof publishTarget.enumValues)[number];
 export type JobStatus = (typeof jobStatus.enumValues)[number];
 export type JobStage = (typeof jobStage.enumValues)[number];
 export type AssetKind = (typeof assetKind.enumValues)[number];

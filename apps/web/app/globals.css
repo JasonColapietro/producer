@@ -79,7 +79,7 @@ button:hover, .btn:hover { filter: brightness(1.07); }
 .pill.queued, .pill.processing, .pill.publishing { background: rgba(91,157,255,0.14); color: var(--blue); }
 .pill.needs_review { background: rgba(245,177,76,0.16); color: var(--amber); }
 .pill.ready { background: rgba(91,157,255,0.14); color: var(--blue); }
-.pill.published { background: rgba(58,210,159,0.15); color: var(--green); }
+.pill.published, .pill.completed { background: rgba(58,210,159,0.15); color: var(--green); }
 .pill.failed { background: rgba(255,93,108,0.16); color: var(--red); }
 
 .mode-tag { font-size: 11px; color: var(--muted); border: 1px solid var(--border); padding: 2px 7px; border-radius: 6px; }

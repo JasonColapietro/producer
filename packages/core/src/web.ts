@@ -12,6 +12,7 @@ export type {
   Channel,
   Asset,
   VideoMode,
+  PublishTarget,
   JobStatus,
   JobStage,
   AssetKind,

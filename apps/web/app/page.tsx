@@ -1,4 +1,4 @@
-import { ensureOwnerChannel, jobThumbnails, listJobs } from "@/lib/data";
+import { ensureOwnerChannel, jobFinals, jobThumbnails, listJobs } from "@/lib/data";
 import { approveJob, createVideo, retryJob } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -6,7 +6,9 @@ export const dynamic = "force-dynamic";
 export default async function Dashboard() {
   const channel = await ensureOwnerChannel();
   const jobs = await listJobs(channel.id);
-  const thumbs = await jobThumbnails(jobs.map((j) => j.id));
+  const ids = jobs.map((j) => j.id);
+  const thumbs = await jobThumbnails(ids);
+  const finals = await jobFinals(ids);
   const connected = Boolean(channel.youtubeRefreshToken);
 
   return (
@@ -21,7 +23,7 @@ export default async function Dashboard() {
 
       {!connected && (
         <div className="banner">
-          <span>Connect your YouTube channel to let TubeForge publish.</span>
+          <span>Videos are built ready to <strong>download</strong> by default. Connect YouTube only if you want auto-publishing.</span>
           <a className="btn btn-sm" href="/api/youtube/connect">
             Connect YouTube
           </a>
@@ -44,11 +46,10 @@ export default async function Dashboard() {
                 </select>
               </div>
               <div>
-                <label htmlFor="privacy">Privacy</label>
-                <select id="privacy" name="privacy" defaultValue="private">
-                  <option value="private">Private</option>
-                  <option value="unlisted">Unlisted</option>
-                  <option value="public">Public</option>
+                <label htmlFor="target">Destination</label>
+                <select id="target" name="target" defaultValue="download">
+                  <option value="download">Download (I&apos;ll upload)</option>
+                  <option value="youtube">Auto-publish to YouTube</option>
                 </select>
               </div>
             </div>
@@ -82,6 +83,11 @@ export default async function Dashboard() {
                   </div>
                   <span className={`pill ${j.status}`}>{j.status.replace("_", " ")}</span>
                   <div className="actions">
+                    {finals.get(j.id) && (j.status === "completed" || j.status === "published") && (
+                      <a className="btn btn-sm" href={finals.get(j.id)} download>
+                        Download
+                      </a>
+                    )}
                     {j.status === "needs_review" && (
                       <form action={approveJob}>
                         <input type="hidden" name="id" value={j.id} />
@@ -103,6 +109,9 @@ export default async function Dashboard() {
                         View
                       </a>
                     )}
+                    <a className="btn-ghost btn-sm" href={`/job/${j.id}`}>
+                      Details
+                    </a>
                   </div>
                 </div>
               ))}

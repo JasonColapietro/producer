@@ -33,12 +33,16 @@ export async function listJobs(channelId: string, limit = 25) {
     .limit(limit);
 }
 
-export async function jobThumbnails(jobIds: string[]) {
-  if (jobIds.length === 0) return new Map<string, string>();
-  const rows = await db().select().from(schema.assets);
+/** Latest URL of a given asset kind per job (e.g. thumbnail, final MP4). */
+async function jobAssetMap(jobIds: string[], kind: schema.AssetKind) {
   const map = new Map<string, string>();
+  if (jobIds.length === 0) return map;
+  const rows = await db().select().from(schema.assets);
   for (const a of rows) {
-    if (a.kind === "thumbnail" && jobIds.includes(a.jobId)) map.set(a.jobId, a.url);
+    if (a.kind === kind && jobIds.includes(a.jobId)) map.set(a.jobId, a.url); // last wins = newest
   }
   return map;
 }
+
+export const jobThumbnails = (jobIds: string[]) => jobAssetMap(jobIds, "thumbnail");
+export const jobFinals = (jobIds: string[]) => jobAssetMap(jobIds, "final");

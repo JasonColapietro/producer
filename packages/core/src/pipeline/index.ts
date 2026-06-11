@@ -137,6 +137,12 @@ export async function processJob(jobId: string): Promise<void> {
     const finalUrl = await putFile(creds, `${jobId}/final.mp4`, finalPath);
     await addAsset(jobId, "final", finalUrl, { tags: script.tags });
 
+    // Finalize. Manual-upload target stops at "completed" — the MP4 is in Blob,
+    // ready to download. Only the youtube target touches the Data API.
+    if (job.target === "download") {
+      await setJob(jobId, { status: "completed", stage: "done" });
+      return;
+    }
     if (opts.reviewGate) {
       await setJob(jobId, { status: "needs_review", stage: "publish" });
       return;
