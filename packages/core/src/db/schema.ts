@@ -185,6 +185,18 @@ export const planTopics = pgTable(
   (t) => [index("plan_topics_plan_idx").on(t.planId)],
 );
 
+// Global runtime knobs — a single row ("global"). Lets you turn autopilot off or
+// retune its cadence from the dashboard WITHOUT a redeploy (the vercel.json cron
+// schedule is the fixed trigger; these gate what each tick actually does).
+export const appSettings = pgTable("app_settings", {
+  id: text("id").primaryKey().default("global"),
+  autopilotEnabled: boolean("autopilot_enabled").notNull().default(true),
+  cronMinIntervalHours: integer("cron_min_interval_hours").notNull().default(24),
+  maxJobsPerTick: integer("max_jobs_per_tick").notNull().default(50),
+  lastCronRunAt: timestamp("last_cron_run_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // ── relations ────────────────────────────────────────────────────────────────
 export const usersRel = relations(users, ({ many }) => ({
   channels: many(channels),
@@ -244,6 +256,7 @@ export type Asset = typeof assets.$inferSelect;
 export type ContentPlan = typeof contentPlans.$inferSelect;
 export type NewContentPlan = typeof contentPlans.$inferInsert;
 export type PlanTopic = typeof planTopics.$inferSelect;
+export type AppSettings = typeof appSettings.$inferSelect;
 
 export type VideoMode = (typeof videoMode.enumValues)[number];
 export type PublishTarget = (typeof publishTarget.enumValues)[number];

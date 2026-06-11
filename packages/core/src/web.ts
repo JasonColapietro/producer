@@ -6,7 +6,8 @@ export * as schema from "./db/schema.js";
 export { enqueueJob } from "./db/queue.js";
 export { resolveCreds, googleConfig } from "./config.js";
 export { getAuthUrl, exchangeCode } from "./providers/publish.js";
-export { runDuePlans, type AutopilotResult } from "./autopilot.js";
+export { runDuePlans, runAutopilotTick, type AutopilotResult, type AutopilotTickResult } from "./autopilot.js";
+export { getSettings, updateSettings, type SettingsPatch } from "./db/settings.js";
 export {
   createPlan,
   listPlans,
@@ -32,4 +33,5 @@ export type {
   ContentPlan,
   NewContentPlan,
   PlanTopic,
+  AppSettings,
 } from "./db/schema.js";

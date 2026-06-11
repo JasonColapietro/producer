@@ -1,4 +1,4 @@
-import { db, runDuePlans, schema } from "@tubeforge/core/web";
+import { db, runAutopilotTick, schema } from "@tubeforge/core/web";
 import { sql } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse("unauthorized", { status: 401 });
   }
 
-  const autopilot = await runDuePlans();
+  const autopilot = await runAutopilotTick();
 
   const [stats] = await db()
     .select({

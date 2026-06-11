@@ -6,7 +6,8 @@ export { resolveCreds, MODELS, type Creds } from "./config.js";
 export { processJob, publishJob } from "./pipeline/index.js";
 export { getAuthUrl, exchangeCode } from "./providers/publish.js";
 export { ideateTopics } from "./providers/llm.js";
-export { runDuePlans, type AutopilotResult } from "./autopilot.js";
+export { runDuePlans, runAutopilotTick, type AutopilotResult, type AutopilotTickResult } from "./autopilot.js";
+export { getSettings, updateSettings, shouldRunCron, type SettingsPatch } from "./db/settings.js";
 export {
   createPlan,
   listPlans,
@@ -38,4 +39,5 @@ export type {
   ContentPlan,
   NewContentPlan,
   PlanTopic,
+  AppSettings,
 } from "./db/schema.js";
