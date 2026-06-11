@@ -81,3 +81,11 @@ Hobby tier: Blob 5 GB + 100 GB transfer/mo; functions cap at 300s (our heavy wor
 ## Order of operations
 
 Accounts → fill `.env` → `pnpm install` → `pnpm db:push` → deploy web (Vercel) + worker (Render) → open the app → **Connect YouTube** → queue a video. First renders land **private** on your channel (gotcha #1).
+
+---
+
+## Autopilot — no extra setup
+
+Autopilot rides the same daily cron already wired in step 4. No additional accounts, no new env vars, no extra Render services. Once the stack is deployed, go to **`/plans`** in the dashboard and create a Content Plan (niche + videos/day + format + destination). The next cron tick refills the topic backlog from the niche via the LLM and enqueues the day's jobs; the Render worker renders them as normal.
+
+Because Hobby cron fires **once per day**, each plan enqueues its `perDay` quota once every 24 hours. If you need more frequent ticks, upgrade to Vercel Pro and tighten the cron schedule in `vercel.json`.

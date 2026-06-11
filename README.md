@@ -10,7 +10,7 @@ This is the cost-effective rebuild of the "Claude + YouTube = $X/mo" creator sta
 |---|---|---|---|
 | Script | Jasper / prompt packs | **Claude** (Anthropic API) | cents |
 | Voice | ElevenLabs $99/mo | **XTTS-v2** voice clone (Replicate) | per-sec |
-| Avatar | HeyGen $89/mo | **Sonic** audio-driven talking head (Replicate) | per-sec |
+| Avatar | HeyGen $89/mo | **SadTalker** audio-driven talking head (Replicate) | per-sec |
 | B-roll | Storyblocks sub | **Pexels + Pixabay** APIs | free |
 | Images | Midjourney | **Flux** (Replicate) | ~$0.003 |
 | Captions | Submagic $16/mo | **Whisper** (Replicate) → FFmpeg burn-in | per-sec |
@@ -62,13 +62,13 @@ pnpm web:dev                    # dashboard at http://localhost:3000
 pnpm worker:dev                 # the pipeline worker
 ```
 
-In the dashboard: **Connect YouTube** (one-time OAuth, stores a refresh token), then queue a topic, pick **Faceless** or **Avatar**, and the worker builds + publishes it.
+In the dashboard: queue a topic and pick **Faceless** or **Avatar** + a destination. By default it builds the MP4 for you to **download** (and a 9:16 Short); choose **YouTube** (one-time OAuth) to auto-publish instead.
 
 For avatar / personal-brand mode, set the channel's `defaults.voiceRefUrl` (a ~10s clip of your voice) and `defaults.avatarImageUrl` (a portrait). For faceless, set `STOCK_VOICE_REF_URL` to any neutral narrator clip.
 
 ## Deploy
 
-**Vercel** (dashboard): import the repo, set **Root Directory = `apps/web`**, add the env vars. `vercel.json` already kills preview builds and registers the hourly cron.
+**Vercel** (dashboard): import the repo, set **Root Directory = `apps/web`**, add the env vars. `vercel.json` already kills preview builds and registers the daily autopilot cron.
 
 **Render** (worker): "New → Blueprint", point at this repo — `render.yaml` provisions the Docker worker. Add the same env vars in the Render dashboard.
 
@@ -78,8 +78,23 @@ Both planes share the one `DATABASE_URL` (Neon pooled) and `BLOB_READ_WRITE_TOKE
 
 Set per video in the dashboard (or `mode` on the job). `faceless` = stock/Flux B-roll. `avatar` = your cloned face + voice on the hero scenes. Same pipeline, one flag.
 
+## Autopilot
+
+Create a **Content Plan** at `/plans` in the dashboard: give it a niche, a `videos/day` quota, a format (`faceless` or `avatar`), and a destination (`download` or `youtube`). That's the entire setup.
+
+Every day the Vercel cron fires `/api/cron/tick`, which calls `runDuePlans`. For each enabled plan that hasn't run in the last 20 hours it:
+
+1. Checks the topic backlog. If unused topics are fewer than today's quota, asks the LLM to generate a fresh batch from the niche (avoiding topics it's already used).
+2. Claims `perDay` topics from the backlog and enqueues one job per topic.
+3. Stamps `lastEnqueuedAt` so the plan doesn't double-fire on cron retries.
+
+The always-on Render worker picks up the queued jobs and renders them the same as any manually-queued video. One bad plan never kills the whole tick — errors are captured per-plan.
+
+Set a niche and the system generates topics, enqueues jobs, and renders videos indefinitely. Nothing else to configure.
+
+> **Cadence note:** on Vercel Hobby the cron fires once per day, so plans enqueue once daily. Pro tier unlocks sub-daily crons.
+
 ## Roadmap
 
-- **Autopilot**: content-plan table → `/api/cron/tick` auto-enqueues N videos/day from a backlog.
-- **Multi-tenant**: auth + per-customer encrypted `channels.secrets` (schema already supports it) + Stripe billing on the orchestration.
-- **Shorts**: auto-cut 9:16 clips from each long-form master.
+- **Multi-tenant / Stripe billing**: auth + per-customer encrypted `channels.secrets` (schema already supports it) + usage-based billing on the orchestration.
+- **Shorts**: the `short` asset kind is already in the schema; auto-cutting 9:16 clips from each long-form master is a pipeline addition.

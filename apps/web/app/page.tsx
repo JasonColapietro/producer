@@ -18,6 +18,9 @@ export default async function Dashboard() {
           Tube<span className="dot">●</span>Forge
         </h1>
         <span className="mode-tag">{channel.name}</span>
+        <a className="btn-ghost btn-sm" href="/plans" style={{ marginLeft: "auto" }}>
+          ⚡ Autopilot
+        </a>
       </div>
       <p className="sub">Faceless &amp; avatar videos on autopilot — your keys, your channel, pennies per render.</p>
 
