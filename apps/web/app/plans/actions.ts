@@ -5,6 +5,8 @@ import {
   createPlan,
   deletePlan,
   setPlanEnabled,
+  updateSettings,
+  runAutopilotTick,
 } from "@tubeforge/core/web";
 import { revalidatePath } from "next/cache";
 import { ensureOwnerChannel } from "@/lib/data";
@@ -34,6 +36,20 @@ export async function deletePlanAction(formData: FormData) {
   const id = String(formData.get("id"));
   await deletePlan(id);
   revalidatePath("/plans");
+}
+
+export async function saveSettingsAction(formData: FormData): Promise<void> {
+  const autopilotEnabled = formData.get("autopilotEnabled") === "on";
+  const cronMinIntervalHours = Math.max(1, parseInt(String(formData.get("cronMinIntervalHours") ?? "1"), 10) || 1);
+  const maxJobsPerTick = Math.max(1, parseInt(String(formData.get("maxJobsPerTick") ?? "1"), 10) || 1);
+  await updateSettings({ autopilotEnabled, cronMinIntervalHours, maxJobsPerTick });
+  revalidatePath("/plans");
+}
+
+export async function runNowAction(): Promise<void> {
+  await runAutopilotTick({ force: true });
+  revalidatePath("/plans");
+  revalidatePath("/");
 }
 
 export async function addTopicsAction(formData: FormData) {

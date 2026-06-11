@@ -1,10 +1,12 @@
-import { countPendingTopics, listPlans } from "@tubeforge/core/web";
+import { countPendingTopics, listPlans, getSettings } from "@tubeforge/core/web";
 import { ensureOwnerChannel } from "@/lib/data";
 import {
   addTopicsAction,
   createPlanAction,
   deletePlanAction,
   togglePlanAction,
+  saveSettingsAction,
+  runNowAction,
 } from "./actions";
 import type { ContentPlan } from "@tubeforge/core/web";
 
@@ -12,12 +14,16 @@ export const dynamic = "force-dynamic";
 
 export default async function PlansPage() {
   const channel = await ensureOwnerChannel();
-  const plans = await listPlans(channel.id);
+  const [plans, settings] = await Promise.all([
+    listPlans(channel.id),
+    getSettings(),
+  ]);
 
   // Fetch pending-topic counts for all plans in parallel
   const backlogCounts = await Promise.all(
     plans.map((p) => countPendingTopics(p.id)),
   );
+
   const planWithBacklog: Array<{ plan: ContentPlan; backlog: number }> =
     plans.map((plan, i) => ({ plan, backlog: backlogCounts[i]! }));
 
@@ -36,6 +42,81 @@ export default async function PlansPage() {
         {" · "}
         Autopilot — content plans that generate videos while you sleep.
       </p>
+
+      {/* ── Autopilot controls ── */}
+      <section className="card" style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <h2 style={{ margin: 0 }}>Autopilot controls</h2>
+          <span className={`pill ${settings.autopilotEnabled ? "published" : "failed"}`}>
+            {settings.autopilotEnabled ? "Active" : "Paused"}
+          </span>
+        </div>
+
+        <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 14px" }}>
+          Last run:{" "}
+          <strong style={{ color: "var(--text)" }}>
+            {settings.lastCronRunAt
+              ? new Date(settings.lastCronRunAt).toLocaleString()
+              : "never"}
+          </strong>
+        </p>
+
+        <div className="row" style={{ alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+          {/* Settings form */}
+          <form action={saveSettingsAction} style={{ flex: "1 1 320px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+              <input
+                id="autopilotEnabled"
+                name="autopilotEnabled"
+                type="checkbox"
+                defaultChecked={settings.autopilotEnabled}
+                style={{ width: "auto", accentColor: "var(--accent)", cursor: "pointer" }}
+              />
+              <label htmlFor="autopilotEnabled" style={{ margin: 0, cursor: "pointer", fontSize: 13 }}>
+                Enable autopilot
+              </label>
+            </div>
+
+            <div className="row">
+              <div>
+                <label htmlFor="cronMinIntervalHours">Min hours between runs</label>
+                <input
+                  id="cronMinIntervalHours"
+                  name="cronMinIntervalHours"
+                  type="number"
+                  min={1}
+                  defaultValue={settings.cronMinIntervalHours}
+                />
+              </div>
+              <div>
+                <label htmlFor="maxJobsPerTick">Max jobs per tick</label>
+                <input
+                  id="maxJobsPerTick"
+                  name="maxJobsPerTick"
+                  type="number"
+                  min={1}
+                  defaultValue={settings.maxJobsPerTick}
+                />
+              </div>
+            </div>
+
+            <button className="btn btn-sm" type="submit" style={{ marginTop: 14 }}>
+              Save
+            </button>
+          </form>
+
+          {/* Run now form */}
+          <form action={runNowAction} style={{ display: "flex", alignItems: "flex-end", paddingBottom: 2 }}>
+            <button className="btn-ghost btn-sm" type="submit" style={{ whiteSpace: "nowrap" }}>
+              ▶ Run now
+            </button>
+          </form>
+        </div>
+
+        <p style={{ fontSize: 11, color: "var(--muted)", margin: "14px 0 0", borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+          The daily fire-schedule lives in <code style={{ fontSize: 11 }}>vercel.json</code>; these controls gate what each tick does. Hard-off: set <code style={{ fontSize: 11 }}>AUTOPILOT_ENABLED=false</code> in env vars.
+        </p>
+      </section>
 
       <div className="grid split">
         {/* ── New plan form ── */}

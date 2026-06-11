@@ -82,7 +82,7 @@ Set per video in the dashboard (or `mode` on the job). `faceless` = stock/Flux B
 
 Create a **Content Plan** at `/plans` in the dashboard: give it a niche, a `videos/day` quota, a format (`faceless` or `avatar`), and a destination (`download` or `youtube`). That's the entire setup.
 
-Every day the Vercel cron fires `/api/cron/tick`, which calls `runDuePlans`. For each enabled plan that hasn't run in the last 20 hours it:
+Every day the Vercel cron fires `/api/cron/tick`, which calls `runAutopilotTick` (the gated wrapper around `runDuePlans`). For each enabled plan that's due it:
 
 1. Checks the topic backlog. If unused topics are fewer than today's quota, asks the LLM to generate a fresh batch from the niche (avoiding topics it's already used).
 2. Claims `perDay` topics from the backlog and enqueues one job per topic.
@@ -93,6 +93,25 @@ The always-on Render worker picks up the queued jobs and renders them the same a
 Set a niche and the system generates topics, enqueues jobs, and renders videos indefinitely. Nothing else to configure.
 
 > **Cadence note:** on Vercel Hobby the cron fires once per day, so plans enqueue once daily. Pro tier unlocks sub-daily crons.
+
+### Controlling the cron
+
+Three independent layers let you control when (and whether) autopilot runs — from coarse to fine:
+
+**1. Schedule** (requires a redeploy) — change the cron expression in `apps/web/vercel.json` and redeploy. On Vercel Hobby the fastest schedule allowed is `0 9 * * *` (once per day at 09:00 UTC). Vercel Pro removes that restriction.
+
+**2. Runtime controls** (no redeploy, live immediately) — the **Autopilot** card on the `/plans` dashboard exposes four knobs:
+
+| Control | What it does |
+|---|---|
+| **On/Off toggle** | Master switch (`autopilotEnabled`). Cron still fires on schedule but returns `{ ran: false, skipped }` and does nothing. |
+| **Min hours between runs** | `cronMinIntervalHours` — if the cron fires more often than this value, the tick is skipped. Useful insurance against accidental cron duplication or a Pro-tier tighter schedule. |
+| **Max jobs per tick** | `maxJobsPerTick` — hard cap on how many jobs are enqueued in a single tick across all plans. |
+| **Run now** | Fires the tick immediately, bypassing the interval throttle and the per-plan 20-hour gate. Use it to test a new plan or recover from a missed tick. |
+
+When the master toggle is off or the interval hasn't elapsed, the cron route still completes normally and records queue stats — it just returns `{ ran: false, skipped: "…" }` rather than enqueuing any work.
+
+**3. Hard kill** (deploy level) — set `AUTOPILOT_ENABLED=false` as a Vercel environment variable and redeploy. This disables autopilot entirely, overriding all dashboard settings. The `Run now` button on the dashboard also respects this env flag — it cannot override a hard kill.
 
 ## Roadmap
 
