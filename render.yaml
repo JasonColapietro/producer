@@ -6,8 +6,8 @@ services:
     runtime: docker
     dockerfilePath: ./apps/worker/Dockerfile
     dockerContext: .
-    plan: starter # ~$7/mo; CPU is plenty — all GPU work is offloaded to Replicate
-    autoDeploy: true
+    plan: starter # ~$7/mo floor; no free tier for workers. CPU is plenty (GPU is on Replicate).
+    autoDeployTrigger: commit # `autoDeploy: true` is deprecated
     envVars:
       - key: DATABASE_URL
         sync: false # set in Render dashboard (Neon pooled connection string)

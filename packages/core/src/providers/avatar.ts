@@ -15,7 +15,8 @@ export async function animateAvatar(
   const out = await runReplicate(
     creds.replicateApiToken,
     MODELS.avatar,
-    { image: portraitUrl, audio: audioUrl },
+    // sadtalker field names — NOT image/audio.
+    { source_image: portraitUrl, driven_audio: audioUrl, preprocess: "full", still_mode: false },
     { timeoutMs: 15 * 60_000 },
   );
   return firstUrl(out);

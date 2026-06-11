@@ -56,13 +56,15 @@ export function resolveCreds(channel: Pick<Channel, "secrets">): Creds {
  * voice/avatar/image engine without touching pipeline code. Keep cost-effective
  * open models here — this is the whole "don't pay for the shilled stack" lever.
  */
+// Verified live on replicate.com (Jun 2026). Swap these to change the engine.
 export const MODELS = {
-  // Zero-shot voice clone from a short reference clip.
+  // Zero-shot voice clone from a short reference clip. Input: text, speaker(url), language, cleanup_voice.
   tts: "lucataco/xtts-v2:684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
-  // Audio-driven talking-head avatar from one portrait.
-  avatar: "fofr/sonic:a2aad29ea95f19747a5ea22ab14fc6594654506e6cc7f1b21edf8d7e8a6e2d0e",
-  // Cheap, fast, high-quality text-to-image for thumbnails + b-roll fill.
+  // Audio-driven talking-head from one portrait. Input: source_image(url), driven_audio(url).
+  // NOTE: fofr/sonic does NOT exist — sadtalker is the verified image+audio→video model.
+  avatar: "cjwbw/sadtalker:a519cc0cfebaaeade068b23899165a11ec76aaa1d2b313d40d214f204ec957a3",
+  // Cheap, fast text-to-image for thumbnails + b-roll fill. Official model — no version hash needed.
   image: "black-forest-labs/flux-schnell",
-  // Transcription for burned-in captions.
+  // Transcription for burned-in captions. Returns segments[] with start/end/text.
   whisper: "openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef26f68e7d3d16e",
 } as const;
