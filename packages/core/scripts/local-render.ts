@@ -13,6 +13,8 @@ import { writeScript } from "../src/providers/llm.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CARD_PY = join(HERE, "scene_card.py");
+// macOS system python ships Pillow; brew's python3 may not. Override with $PYTHON.
+const PYTHON = process.env.PYTHON ?? "/usr/bin/python3";
 
 try {
   process.loadEnvFile(join(HERE, "../../../.env"));
@@ -77,7 +79,7 @@ for (let i = 0; i < script.scenes.length; i++) {
 
   await run("say", ["-r", "182", "-o", aiff, scene.narration]);
   const dur = await probe(aiff);
-  await run("python3", [CARD_PY, png, scene.brollKeywords.join("  ·  ").toUpperCase(), scene.narration, "SUEDE LABS AI"]);
+  await run(PYTHON, [CARD_PY, png, scene.brollKeywords.join("  ·  ").toUpperCase(), scene.narration, "SUEDE LABS AI"]);
   await run("ffmpeg", [
     "-y", "-loop", "1", "-i", png, "-i", aiff, "-t", dur.toFixed(2),
     "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-r", "30",
