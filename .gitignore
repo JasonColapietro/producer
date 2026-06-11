@@ -1,0 +1,22 @@
+node_modules/
+.pnpm-store/
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# env
+.env
+.env.local
+.env.*.local
+
+# generated media / scratch
+tmp/
+out/
+*.mp4
+*.mp3
+*.wav
+*.srt
+
+# os
+.DS_Store

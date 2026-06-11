@@ -1,0 +1,25 @@
+# Render blueprint — the heavy worker (FFmpeg assembly + GPU API orchestration).
+# Vercel runs the dashboard + cron; this worker drains the job queue.
+services:
+  - type: worker
+    name: tubeforge-worker
+    runtime: docker
+    dockerfilePath: ./apps/worker/Dockerfile
+    dockerContext: .
+    plan: starter # ~$7/mo; CPU is plenty — all GPU work is offloaded to Replicate
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false # set in Render dashboard (Neon pooled connection string)
+      - key: BLOB_READ_WRITE_TOKEN
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: REPLICATE_API_TOKEN
+        sync: false
+      - key: PEXELS_API_KEY
+        sync: false
+      - key: PIXABAY_API_KEY
+        sync: false
+      - key: WORKER_POLL_MS
+        value: "5000"
