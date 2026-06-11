@@ -7,7 +7,7 @@ interface WhisperSegment {
   text: string;
 }
 
-function srtTime(sec: number): string {
+export function srtTime(sec: number): string {
   const ms = Math.max(0, Math.round(sec * 1000));
   const h = Math.floor(ms / 3_600_000);
   const m = Math.floor((ms % 3_600_000) / 60_000);
@@ -15,6 +15,12 @@ function srtTime(sec: number): string {
   const millis = ms % 1000;
   const p = (n: number, w = 2) => String(n).padStart(w, "0");
   return `${p(h)}:${p(m)}:${p(s)},${p(millis, 3)}`;
+}
+
+export function buildSrt(segments: { start: number; end: number; text: string }[]): string {
+  return segments
+    .map((seg, i) => `${i + 1}\n${srtTime(seg.start)} --> ${srtTime(seg.end)}\n${seg.text.trim()}\n`)
+    .join("\n");
 }
 
 /** Transcribe an audio file and return burn-ready SRT subtitles. */
@@ -25,7 +31,5 @@ export async function transcribeToSrt(creds: Creds, audioUrl: string): Promise<s
   })) as { segments?: WhisperSegment[] };
 
   const segments = out.segments ?? [];
-  return segments
-    .map((seg, i) => `${i + 1}\n${srtTime(seg.start)} --> ${srtTime(seg.end)}\n${seg.text.trim()}\n`)
-    .join("\n");
+  return buildSrt(segments);
 }

@@ -21,6 +21,7 @@ import {
   LANDSCAPE,
   type VisualKind,
 } from "../assemble/ffmpeg.js";
+import { makeShort } from "../assemble/shorts.js";
 
 async function setJob(id: string, patch: Partial<Job>) {
   await db()
@@ -136,6 +137,15 @@ export async function processJob(jobId: string): Promise<void> {
     // 6) Persist final
     const finalUrl = await putFile(creds, `${jobId}/final.mp4`, finalPath);
     await addAsset(jobId, "final", finalUrl, { tags: script.tags });
+
+    // 6b) Best-effort vertical Short for Reels/TikTok — CPU-cheap, never blocks the job.
+    try {
+      const shortPath = join(dir, "short.mp4");
+      await makeShort(finalPath, shortPath, { maxSeconds: 50 });
+      await addAsset(jobId, "short", await putFile(creds, `${jobId}/short.mp4`, shortPath));
+    } catch (e) {
+      console.warn(`[pipeline] short skipped for ${jobId}:`, e instanceof Error ? e.message : e);
+    }
 
     // Finalize. Manual-upload target stops at "completed" — the MP4 is in Blob,
     // ready to download. Only the youtube target touches the Data API.

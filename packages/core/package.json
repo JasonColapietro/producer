@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.1",
-    "@types/node": "^22.10.5"
+    "@types/node": "^22.10.5",
+    "vitest": "^3.0.5"
   }
 }

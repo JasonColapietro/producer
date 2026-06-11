@@ -51,6 +51,7 @@ export const assetKind = pgEnum("asset_kind", [
   "thumbnail",
   "video",
   "final",
+  "short", // 9:16 vertical cut for Reels/Shorts/TikTok
 ]);
 
 // ── tenants ──────────────────────────────────────────────────────────────────
