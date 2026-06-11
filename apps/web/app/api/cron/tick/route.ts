@@ -1,20 +1,22 @@
-import { db, schema } from "@tubeforge/core/web";
+import { db, runDuePlans, schema } from "@tubeforge/core/web";
 import { sql } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 /**
- * Vercel cron heartbeat. The Render worker drains the queue continuously, so the
- * cron's real job is content SCHEDULING: this is where auto-enqueue from a
- * channel's content plan plugs in (e.g. "1 video/day from the backlog"). For now
- * it reports queue health and verifies the secret so the endpoint is locked down.
+ * Vercel cron tick (daily on Hobby). Runs autopilot: each due content plan
+ * refills its topic backlog from its niche and enqueues `perDay` jobs, which the
+ * always-on Render worker then renders. Also reports queue health. Locked by CRON_SECRET.
  */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
   if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) {
     return new NextResponse("unauthorized", { status: 401 });
   }
+
+  const autopilot = await runDuePlans();
 
   const [stats] = await db()
     .select({
@@ -26,7 +28,5 @@ export async function GET(req: NextRequest) {
     })
     .from(schema.jobs);
 
-  // TODO(autopilot): for each channel with a content plan due, enqueueJob() here.
-
-  return NextResponse.json({ ok: true, at: new Date().toISOString(), stats });
+  return NextResponse.json({ ok: true, at: new Date().toISOString(), autopilot, stats });
 }

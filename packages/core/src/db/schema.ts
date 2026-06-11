@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   jsonb,
@@ -147,6 +148,43 @@ export const assets = pgTable(
   (t) => [index("assets_job_idx").on(t.jobId)],
 );
 
+// ── autopilot ────────────────────────────────────────────────────────────────
+// A content plan turns a niche into an endless backlog: the daily cron enqueues
+// `perDay` jobs from plan_topics, and when the backlog runs dry the LLM invents
+// a fresh batch from the niche. Set it and it runs itself.
+export const contentPlans = pgTable(
+  "content_plans",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    channelId: uuid("channel_id")
+      .notNull()
+      .references(() => channels.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    niche: text("niche").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    perDay: integer("per_day").notNull().default(1),
+    mode: videoMode("mode").notNull().default("faceless"),
+    target: publishTarget("target").notNull().default("download"),
+    lastEnqueuedAt: timestamp("last_enqueued_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("content_plans_channel_idx").on(t.channelId)],
+);
+
+export const planTopics = pgTable(
+  "plan_topics",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => contentPlans.id, { onDelete: "cascade" }),
+    topic: text("topic").notNull(),
+    used: boolean("used").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("plan_topics_plan_idx").on(t.planId)],
+);
+
 // ── relations ────────────────────────────────────────────────────────────────
 export const usersRel = relations(users, ({ many }) => ({
   channels: many(channels),
@@ -154,6 +192,14 @@ export const usersRel = relations(users, ({ many }) => ({
 export const channelsRel = relations(channels, ({ one, many }) => ({
   user: one(users, { fields: [channels.userId], references: [users.id] }),
   jobs: many(jobs),
+  plans: many(contentPlans),
+}));
+export const contentPlansRel = relations(contentPlans, ({ one, many }) => ({
+  channel: one(channels, { fields: [contentPlans.channelId], references: [channels.id] }),
+  topics: many(planTopics),
+}));
+export const planTopicsRel = relations(planTopics, ({ one }) => ({
+  plan: one(contentPlans, { fields: [planTopics.planId], references: [contentPlans.id] }),
 }));
 export const jobsRel = relations(jobs, ({ one, many }) => ({
   channel: one(channels, { fields: [jobs.channelId], references: [channels.id] }),
@@ -195,6 +241,9 @@ export type Job = typeof jobs.$inferSelect;
 export type NewJob = typeof jobs.$inferInsert;
 export type Channel = typeof channels.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
+export type ContentPlan = typeof contentPlans.$inferSelect;
+export type NewContentPlan = typeof contentPlans.$inferInsert;
+export type PlanTopic = typeof planTopics.$inferSelect;
 
 export type VideoMode = (typeof videoMode.enumValues)[number];
 export type PublishTarget = (typeof publishTarget.enumValues)[number];

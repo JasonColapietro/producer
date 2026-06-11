@@ -68,3 +68,35 @@ export async function writeScript(creds: Creds, args: WriteArgs): Promise<Script
   const json = text.startsWith("{") ? text : text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
   return ScriptSchema.parse(JSON.parse(json));
 }
+
+/** Invent fresh, specific video topics for a niche — autopilot's backlog refill. */
+export async function ideateTopics(
+  creds: Creds,
+  args: { niche: string; count: number; avoid?: string[] },
+): Promise<string[]> {
+  const client = new Anthropic({ apiKey: creds.anthropicApiKey });
+  const avoid = args.avoid?.length
+    ? `\n\nDo NOT repeat or closely echo these already-used topics:\n- ${args.avoid.slice(0, 40).join("\n- ")}`
+    : "";
+
+  const res = await client.messages.create({
+    model: creds.anthropicModel,
+    max_tokens: 1024,
+    system:
+      "You are a YouTube growth strategist. Generate specific, curiosity-driven video topics with a built-in hook — concrete title-like ideas, never vague categories. Return ONLY a JSON array of strings.",
+    messages: [
+      {
+        role: "user",
+        content: `Niche: ${args.niche}\nGenerate ${args.count} fresh video topics as a JSON array of strings.${avoid}`,
+      },
+    ],
+  });
+
+  const text = res.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
+  const json = text.startsWith("[") ? text : text.slice(text.indexOf("["), text.lastIndexOf("]") + 1);
+  return z.array(z.string()).parse(JSON.parse(json));
+}

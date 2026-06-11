@@ -6,6 +6,16 @@ export * as schema from "./db/schema.js";
 export { enqueueJob } from "./db/queue.js";
 export { resolveCreds, googleConfig } from "./config.js";
 export { getAuthUrl, exchangeCode } from "./providers/publish.js";
+export { runDuePlans, type AutopilotResult } from "./autopilot.js";
+export {
+  createPlan,
+  listPlans,
+  getPlan,
+  setPlanEnabled,
+  deletePlan,
+  addTopics,
+  countPendingTopics,
+} from "./db/plans.js";
 export type {
   Job,
   NewJob,
@@ -19,4 +29,7 @@ export type {
   ChannelDefaults,
   ChannelSecrets,
   JobOptions,
+  ContentPlan,
+  NewContentPlan,
+  PlanTopic,
 } from "./db/schema.js";
