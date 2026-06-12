@@ -46,3 +46,4 @@ async function jobAssetMap(jobIds: string[], kind: schema.AssetKind) {
 
 export const jobThumbnails = (jobIds: string[]) => jobAssetMap(jobIds, "thumbnail");
 export const jobFinals = (jobIds: string[]) => jobAssetMap(jobIds, "final");
+export const jobScripts = (jobIds: string[]) => jobAssetMap(jobIds, "script");

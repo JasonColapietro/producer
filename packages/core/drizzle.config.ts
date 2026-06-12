@@ -6,6 +6,7 @@ export default defineConfig({
   // Migrations need a DIRECT (non-pooled) connection — PgBouncer transaction mode
   // can't run DDL. Use the unpooled URL for db:push; runtime uses the pooled one.
   dbCredentials: { url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL! },
+  schemaFilter: ["tubeforge"],
   strict: true,
   verbose: true,
 });

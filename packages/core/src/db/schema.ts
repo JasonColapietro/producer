@@ -4,24 +4,26 @@ import {
   index,
   integer,
   jsonb,
-  pgEnum,
-  pgTable,
+  pgSchema,
   text,
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
 
+const tf = pgSchema("tubeforge");
+
 // ── enums ────────────────────────────────────────────────────────────────────
-export const videoMode = pgEnum("video_mode", ["faceless", "avatar"]);
+export const videoMode = tf.enum("video_mode", ["faceless", "avatar", "voiceover"]);
 
 // Where a finished video goes. "download" = build it, store the MP4, stop (you
 // upload manually — the default while YouTube API publishing is gated by audit).
 // "youtube" = auto-upload via the Data API.
-export const publishTarget = pgEnum("publish_target", ["download", "youtube"]);
+export const publishTarget = tf.enum("publish_target", ["download", "youtube"]);
 
-export const jobStatus = pgEnum("job_status", [
+export const jobStatus = tf.enum("job_status", [
   "queued", // waiting for a worker
   "processing", // a worker has claimed it
+  "needs_voiceover", // script ready, waiting for user to upload recorded audio
   "needs_review", // assembled, waiting for human approve (if review gate on)
   "ready", // approved, waiting to publish / scheduled (youtube target)
   "publishing",
@@ -30,7 +32,7 @@ export const jobStatus = pgEnum("job_status", [
   "failed",
 ]);
 
-export const jobStage = pgEnum("job_stage", [
+export const jobStage = tf.enum("job_stage", [
   "ideate",
   "script",
   "voice",
@@ -43,7 +45,7 @@ export const jobStage = pgEnum("job_stage", [
   "done",
 ]);
 
-export const assetKind = pgEnum("asset_kind", [
+export const assetKind = tf.enum("asset_kind", [
   "script",
   "audio",
   "caption",
@@ -57,7 +59,7 @@ export const assetKind = pgEnum("asset_kind", [
 
 // ── tenants ──────────────────────────────────────────────────────────────────
 // One row per customer. v1 seeds a single owner row; billing/auth attach here.
-export const users = pgTable("users", {
+export const users = tf.table("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
   plan: text("plan").notNull().default("owner"),
@@ -68,7 +70,7 @@ export const users = pgTable("users", {
 
 // A YouTube channel a tenant automates. Holds its own BYO API keys + YT token,
 // so each customer pays their own inference + the product bears zero GPU cost.
-export const channels = pgTable(
+export const channels = tf.table(
   "channels",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -97,7 +99,7 @@ export const channels = pgTable(
 );
 
 // ── jobs ─────────────────────────────────────────────────────────────────────
-export const jobs = pgTable(
+export const jobs = tf.table(
   "jobs",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -131,7 +133,7 @@ export const jobs = pgTable(
 );
 
 // Every artifact a job produces, addressable by URL in Blob storage.
-export const assets = pgTable(
+export const assets = tf.table(
   "assets",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -152,7 +154,7 @@ export const assets = pgTable(
 // A content plan turns a niche into an endless backlog: the daily cron enqueues
 // `perDay` jobs from plan_topics, and when the backlog runs dry the LLM invents
 // a fresh batch from the niche. Set it and it runs itself.
-export const contentPlans = pgTable(
+export const contentPlans = tf.table(
   "content_plans",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -171,7 +173,7 @@ export const contentPlans = pgTable(
   (t) => [index("content_plans_channel_idx").on(t.channelId)],
 );
 
-export const planTopics = pgTable(
+export const planTopics = tf.table(
   "plan_topics",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -188,7 +190,7 @@ export const planTopics = pgTable(
 // Global runtime knobs — a single row ("global"). Lets you turn autopilot off or
 // retune its cadence from the dashboard WITHOUT a redeploy (the vercel.json cron
 // schedule is the fixed trigger; these gate what each tick actually does).
-export const appSettings = pgTable("app_settings", {
+export const appSettings = tf.table("app_settings", {
   id: text("id").primaryKey().default("global"),
   autopilotEnabled: boolean("autopilot_enabled").notNull().default(true),
   cronMinIntervalHours: integer("cron_min_interval_hours").notNull().default(24),
@@ -240,6 +242,8 @@ export interface ChannelDefaults {
   lengthMinutes?: number;
   /** Hold finished videos for manual approval before publishing. */
   reviewGate?: boolean;
+  /** URL of the talking-head video clip used as the base for LatentSync lip-sync (voiceover mode). */
+  voiceoverVideoUrl?: string;
 }
 
 export interface JobOptions extends ChannelDefaults {

@@ -10,7 +10,8 @@ const { jobs } = schema;
 export async function createVideo(formData: FormData) {
   const topic = String(formData.get("topic") ?? "").trim();
   if (!topic) return;
-  const mode = formData.get("mode") === "avatar" ? "avatar" : "faceless";
+  const raw = formData.get("mode");
+  const mode = raw === "avatar" ? "avatar" : raw === "voiceover" ? "voiceover" : "faceless";
   const target = formData.get("target") === "youtube" ? "youtube" : "download";
   const privacy = (String(formData.get("privacy") ?? "private") || "private") as
     | "private"

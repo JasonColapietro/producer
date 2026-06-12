@@ -6,6 +6,7 @@ import { resolveCreds } from "../config.js";
 import { db } from "../db/client.js";
 import { assets, channels, jobs, type AssetKind, type Job, type JobStage } from "../db/schema.js";
 import { animateAvatar } from "../providers/avatar.js";
+import { syncLips } from "../providers/lipsync.js";
 import { transcribeToSrt } from "../providers/captions.js";
 import { generateImage } from "../providers/images.js";
 import { writeScript } from "../providers/llm.js";
@@ -60,7 +61,62 @@ export async function processJob(jobId: string): Promise<void> {
   try {
     await setJob(jobId, { status: "processing", attempts: job.attempts + 1, error: null });
 
-    // 1) Script
+    // ── Voiceover mode: script-first pass, then lipsync on resume ────────────
+    if (job.mode === "voiceover") {
+      const existingAssets = await db().select().from(assets).where(eq(assets.jobId, jobId));
+      const audioAsset = existingAssets.find((a) => a.kind === "audio");
+
+      if (!audioAsset) {
+        // First pass: generate script, pause for the user to record audio.
+        await stage(jobId, "script");
+        const script = await writeScript(creds, {
+          topic: job.topic,
+          niche: opts.niche ?? channel.niche,
+          persona: opts.persona,
+          lengthMinutes: opts.lengthMinutes,
+        });
+        await addAsset(jobId, "script", await putBuffer(creds, `${jobId}/script.json`, JSON.stringify(script, null, 2), "application/json"));
+        await setJob(jobId, { title: script.title, description: script.description, status: "needs_voiceover", stage: "voice" });
+        return;
+      }
+
+      // Second pass: user has uploaded audio — lipsync + captions + done.
+      const baseVideoUrl = opts.voiceoverVideoUrl ?? process.env.VOICEOVER_BASE_VIDEO_URL;
+      if (!baseVideoUrl) throw new Error("No base video for lipsync (channel.defaults.voiceoverVideoUrl or VOICEOVER_BASE_VIDEO_URL)");
+
+      await stage(jobId, "avatar");
+      const syncedUrl = await syncLips(creds, baseVideoUrl, audioAsset.url);
+      const syncedPath = join(dir, "synced.mp4");
+      await download(syncedUrl, syncedPath);
+
+      await stage(jobId, "captions");
+      const srt = await transcribeToSrt(creds, audioAsset.url);
+      const srtPath = join(dir, "captions.srt");
+      await writeFile(srtPath, srt);
+      const finalPath = join(dir, "final.mp4");
+      await burnSubtitles(syncedPath, srtPath, finalPath);
+
+      await stage(jobId, "thumbnail");
+      const scriptAsset = existingAssets.find((a) => a.kind === "script");
+      const scriptData = scriptAsset ? JSON.parse(await (await fetch(scriptAsset.url)).text()) : null;
+      const thumbPrompt = scriptData?.thumbnailPrompt ?? `${job.title ?? job.topic}, cinematic`;
+      const thumbUrl = await generateImage(creds, thumbPrompt, "16:9");
+      await addAsset(jobId, "thumbnail", thumbUrl);
+
+      const finalUrl = await putFile(creds, `${jobId}/final.mp4`, finalPath);
+      await addAsset(jobId, "final", finalUrl);
+
+      if (job.target === "download") {
+        await setJob(jobId, { status: "completed", stage: "done" });
+      } else if (opts.reviewGate) {
+        await setJob(jobId, { status: "needs_review", stage: "publish" });
+      } else {
+        await publishJob(jobId, finalPath);
+      }
+      return;
+    }
+
+    // 1) Script (faceless / avatar modes)
     await stage(jobId, "script");
     const script = await writeScript(creds, {
       topic: job.topic,

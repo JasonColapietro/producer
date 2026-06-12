@@ -67,4 +67,6 @@ export const MODELS = {
   image: "black-forest-labs/flux-schnell",
   // Transcription for burned-in captions. Returns segments[] with start/end/text.
   whisper: "openai/whisper:8099696689d249cf8b122d833c36ac3f75505c666a395ca40ef26f68e7d3d16e",
+  // Lip-sync existing footage to new audio. Input: video(url), audio(url). Much cheaper than SadTalker.
+  lipsync: "bytedance/latentsync:637ce191f5e68621a4f1a7e3e938c6bce8da73f4",
 } as const;

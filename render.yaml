@@ -2,7 +2,7 @@
 # Vercel runs the dashboard + cron; this worker drains the job queue.
 services:
   - type: worker
-    name: tubeforge-worker
+    name: producer-suedelabs-worker
     runtime: docker
     dockerfilePath: ./apps/worker/Dockerfile
     dockerContext: .

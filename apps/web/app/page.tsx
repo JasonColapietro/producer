@@ -1,4 +1,4 @@
-import { ensureOwnerChannel, jobFinals, jobThumbnails, listJobs } from "@/lib/data";
+import { ensureOwnerChannel, jobFinals, jobScripts, jobThumbnails, listJobs } from "@/lib/data";
 import { approveJob, createVideo, retryJob } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -9,20 +9,19 @@ export default async function Dashboard() {
   const ids = jobs.map((j) => j.id);
   const thumbs = await jobThumbnails(ids);
   const finals = await jobFinals(ids);
+  const scripts = await jobScripts(ids);
   const connected = Boolean(channel.youtubeRefreshToken);
 
   return (
     <main className="wrap">
       <div className="brand">
-        <h1>
-          Tube<span className="dot">●</span>Forge
-        </h1>
+        <h1>Producer <span className="dot">by</span> Suede Labs</h1>
         <span className="mode-tag">{channel.name}</span>
         <a className="btn-ghost btn-sm" href="/plans" style={{ marginLeft: "auto" }}>
           ⚡ Autopilot
         </a>
       </div>
-      <p className="sub">Faceless &amp; avatar videos on autopilot — your keys, your channel, pennies per render.</p>
+      <p className="sub">Faceless &amp; avatar videos on autopilot — your keys, your channel, pennies per render. Powered by Suede Labs AI.</p>
 
       {!connected && (
         <div className="banner">
@@ -45,7 +44,8 @@ export default async function Dashboard() {
                 <label htmlFor="mode">Format</label>
                 <select id="mode" name="mode" defaultValue="faceless">
                   <option value="faceless">Faceless (B-roll)</option>
-                  <option value="avatar">Avatar (you)</option>
+                  <option value="avatar">Avatar (AI face)</option>
+                  <option value="voiceover">Voiceover (your voice)</option>
                 </select>
               </div>
               <div>
@@ -90,6 +90,20 @@ export default async function Dashboard() {
                       <a className="btn btn-sm" href={finals.get(j.id)} download>
                         Download
                       </a>
+                    )}
+                    {j.status === "needs_voiceover" && (
+                      <>
+                        {scripts.get(j.id) && (
+                          <a className="btn-ghost btn-sm" href={scripts.get(j.id)} target="_blank" rel="noreferrer">
+                            Read script
+                          </a>
+                        )}
+                        <form action="/api/voiceover" method="POST" encType="multipart/form-data">
+                          <input type="hidden" name="id" value={j.id} />
+                          <input type="file" name="audio" accept="audio/*" required style={{ fontSize: "0.75rem" }} />
+                          <button className="btn btn-sm" type="submit">Upload voiceover</button>
+                        </form>
+                      </>
                     )}
                     {j.status === "needs_review" && (
                       <form action={approveJob}>
