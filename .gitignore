@@ -20,3 +20,4 @@ out/
 
 # os
 .DS_Store
+.vercel
