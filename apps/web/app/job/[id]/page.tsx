@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { db, schema } from "@tubeforge/core/web";
+import { db, schema } from "@producer/core/web";
 import { eq } from "drizzle-orm";
 import CopyButton from "./CopyButton";
 

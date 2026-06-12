@@ -1,4 +1,4 @@
-import { getAuthUrl, googleConfig } from "@tubeforge/core/web";
+import { getAuthUrl, googleConfig } from "@producer/core/web";
 import { NextResponse } from "next/server";
 import { ensureOwnerChannel } from "@/lib/data";
 

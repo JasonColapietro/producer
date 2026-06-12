@@ -1,6 +1,6 @@
 "use server";
 
-import { db, enqueueJob, schema } from "@tubeforge/core/web";
+import { db, enqueueJob, schema } from "@producer/core/web";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { ensureOwnerChannel } from "@/lib/data";

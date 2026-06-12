@@ -1,4 +1,4 @@
-import { countPendingTopics, listPlans, getSettings } from "@tubeforge/core/web";
+import { countPendingTopics, listPlans, getSettings } from "@producer/core/web";
 import { ensureOwnerChannel } from "@/lib/data";
 import {
   addTopicsAction,
@@ -8,7 +8,7 @@ import {
   saveSettingsAction,
   runNowAction,
 } from "./actions";
-import type { ContentPlan } from "@tubeforge/core/web";
+import type { ContentPlan } from "@producer/core/web";
 
 export const dynamic = "force-dynamic";
 

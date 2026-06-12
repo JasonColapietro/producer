@@ -10,7 +10,7 @@
  *       DATABASE_URL, ANTHROPIC_API_KEY (or channel BYO keys),
  *       REPLICATE_API_TOKEN, PEXELS_API_KEY / PIXABAY_API_KEY,
  *       BLOB_READ_WRITE_TOKEN (Vercel Blob), STOCK_VOICE_REF_URL
- *   - Optional: OWNER_EMAIL (defaults to "owner@tubeforge.local")
+ *   - Optional: OWNER_EMAIL (defaults to "owner@producer.local")
  */
 
 // ── 1. Best-effort .env loading ───────────────────────────────────────────────
@@ -56,7 +56,7 @@ async function ensureOwnerChannel(): Promise<string> {
   if (existing[0]) return existing[0].id;
 
   // No channel yet — upsert the owner user then insert a default channel
-  const email = process.env.OWNER_EMAIL ?? "owner@tubeforge.local";
+  const email = process.env.OWNER_EMAIL ?? "owner@producer.local";
   console.log(`No channel found — bootstrapping owner user (${email}) + default channel…`);
 
   let owner = (

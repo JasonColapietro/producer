@@ -1,5 +1,5 @@
 {
-  "name": "@tubeforge/worker",
+  "name": "@producer/worker",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@tubeforge/core": "workspace:*",
+    "@producer/core": "workspace:*",
     "tsx": "^4.19.2"
   },
   "devDependencies": {

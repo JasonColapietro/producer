@@ -1,4 +1,4 @@
-import { db, runAutopilotTick, schema } from "@tubeforge/core/web";
+import { db, runAutopilotTick, schema } from "@producer/core/web";
 import { sql } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 

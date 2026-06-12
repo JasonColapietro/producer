@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, schema } from "@tubeforge/core/web";
+import { db, schema } from "@producer/core/web";
 import { eq } from "drizzle-orm";
 import { put } from "@vercel/blob";
 

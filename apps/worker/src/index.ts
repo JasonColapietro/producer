@@ -1,4 +1,4 @@
-import { claimNextJob, claimReadyJob, processJob, publishJob } from "@tubeforge/core";
+import { claimNextJob, claimReadyJob, processJob, publishJob } from "@producer/core";
 
 const POLL_MS = Number(process.env.WORKER_POLL_MS ?? 5000);
 let running = true;

@@ -7,7 +7,7 @@ import {
   setPlanEnabled,
   updateSettings,
   runAutopilotTick,
-} from "@tubeforge/core/web";
+} from "@producer/core/web";
 import { revalidatePath } from "next/cache";
 import { ensureOwnerChannel } from "@/lib/data";
 

@@ -1,5 +1,5 @@
 import "server-only";
-import { db, schema } from "@tubeforge/core/web";
+import { db, schema } from "@producer/core/web";
 import { desc, eq } from "drizzle-orm";
 
 const { users, channels, jobs } = schema;
@@ -12,7 +12,7 @@ export async function ensureOwnerChannel() {
   const existing = await db().select().from(channels).limit(1);
   if (existing[0]) return existing[0];
 
-  const email = process.env.OWNER_EMAIL ?? "owner@tubeforge.local";
+  const email = process.env.OWNER_EMAIL ?? "owner@producer.local";
   let owner = (await db().select().from(users).where(eq(users.email, email)).limit(1))[0];
   if (!owner) owner = (await db().insert(users).values({ email }).returning())[0]!;
 

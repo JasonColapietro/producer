@@ -1,4 +1,4 @@
-import { db, exchangeCode, googleConfig, schema } from "@tubeforge/core/web";
+import { db, exchangeCode, googleConfig, schema } from "@producer/core/web";
 import { eq } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
 
