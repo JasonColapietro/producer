@@ -17,12 +17,14 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
 COPY packages/core/package.json packages/core/package.json
 COPY apps/worker/package.json apps/worker/package.json
-RUN pnpm install --filter @tubeforge/worker... --frozen-lockfile=false
+RUN pnpm install --filter @producer/worker... --frozen-lockfile=false
 
-# Source
+# Source + build
 COPY tsconfig.base.json ./
 COPY packages/core packages/core
 COPY apps/worker apps/worker
 
 WORKDIR /app/apps/worker
-CMD ["pnpm", "start"]
+RUN pnpm build
+
+CMD ["node", "dist/worker.cjs"]
