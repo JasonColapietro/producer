@@ -24,6 +24,16 @@ function pick(channelValue: string | undefined, envKey: string): string {
   return v;
 }
 
+const GOOGLE_ENV_KEYS = [
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "GOOGLE_OAUTH_REDIRECT",
+] as const;
+
+export function hasGoogleConfig(): boolean {
+  return GOOGLE_ENV_KEYS.every((key) => Boolean(process.env[key]?.trim()));
+}
+
 /** Just the Google OAuth config from env — used by the dashboard's connect/callback
  * routes without forcing all pipeline keys to be present. */
 export function googleConfig() {
