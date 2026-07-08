@@ -133,4 +133,4 @@ When the master toggle is off or the interval hasn't elapsed, the cron route sti
 ## Roadmap
 
 - **Multi-tenant / Stripe billing**: auth + per-customer encrypted `channels.secrets` (schema already supports it) + usage-based billing on the orchestration.
-- **Shorts**: the `short` asset kind is already in the schema; auto-cutting 9:16 clips from each long-form master is a pipeline addition.
+- ~~**Shorts**: the `short` asset kind is already in the schema; auto-cutting 9:16 clips from each long-form master is a pipeline addition.~~ Done — every render mode auto-cuts a blurred-letterbox 9:16 Short (first 50s, best-effort) and it's stored as a `short` asset and shown on the job details page.
