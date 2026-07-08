@@ -17,9 +17,10 @@ export async function createVideo(formData: FormData) {
     | "private"
     | "unlisted"
     | "public";
+  const visuals = formData.get("visuals") === "stock" ? "stock" : "ai";
 
   const channel = await ensureOwnerChannel();
-  await enqueueJob({ channelId: channel.id, topic, mode, target, options: { privacy } });
+  await enqueueJob({ channelId: channel.id, topic, mode, target, options: { privacy, visuals } });
   revalidatePath("/");
 }
 

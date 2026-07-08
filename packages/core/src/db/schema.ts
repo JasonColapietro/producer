@@ -229,6 +229,8 @@ export interface ChannelSecrets {
   replicateApiToken: string;
   pexelsApiKey: string;
   pixabayApiKey: string;
+  /** Kie.ai key for generative AI video scenes (kie.ai → API Keys). */
+  kieApiKey: string;
 }
 
 export interface ChannelDefaults {
@@ -251,6 +253,12 @@ export interface JobOptions extends ChannelDefaults {
   niche?: string;
   /** Make it private/unlisted/public on publish. */
   privacy?: "private" | "unlisted" | "public";
+  /**
+   * Scene visuals engine. "ai" = generative video via Kie.ai (cinematic,
+   * costs cents per scene); "stock" = free Pexels/Pixabay B-roll. Falls back
+   * ai → stock → Flux still, so a missing key never fails a job.
+   */
+  visuals?: "ai" | "stock";
 }
 
 export type Job = typeof jobs.$inferSelect;

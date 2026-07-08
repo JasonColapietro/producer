@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { db, schema } from "@producer/core/web";
 import { eq } from "drizzle-orm";
 import CopyButton from "./CopyButton";
+import SiteNav from "../../components/SiteNav";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +91,7 @@ export default async function JobDetailPage({
 
   return (
     <main className="wrap">
+      <SiteNav active="none" channelName={channel?.name} />
       {/* Back link */}
       <a
         href="/"

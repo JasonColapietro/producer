@@ -1,23 +1,28 @@
-# TubeForge
+# Producer (TubeForge)
 
 Faceless **and** avatar YouTube videos on autopilot — **your keys, your channel, pennies per render.**
 
-This is the cost-effective rebuild of the "Claude + YouTube = $X/mo" creator stack: same assembly line (idea → script → voice → visuals → captions → assemble → publish), but every paid tool the gurus shill is swapped for an open model rented **per-second** from Replicate. No HeyGen, no ElevenLabs subscription, no Submagic, no Pictory. Built BYO-keys and tenant-ready so it can become a product.
+This is the cost-effective rebuild of the "Claude + YouTube = $X/mo" creator stack: same assembly line (idea → script → voice → visuals → captions → assemble → publish), but every paid tool the gurus shill is swapped for a model rented **per call**. No HeyGen, no ElevenLabs subscription, no Submagic, no Pictory. Built BYO-keys and tenant-ready so it can become a product.
 
 ## The swap (what it replaces)
 
-| Stage | Shilled tool | TubeForge uses | Cost |
+| Stage | Shilled tool | Producer uses | Cost |
 |---|---|---|---|
 | Script | Jasper / prompt packs | **Claude** (Anthropic API) | cents |
+| Scene video | Runway/Pika subs $30–95/mo | **Kie.ai** generative video (per clip) | cents/scene |
 | Voice | ElevenLabs $99/mo | **XTTS-v2** voice clone (Replicate) | per-sec |
 | Avatar | HeyGen $89/mo | **SadTalker** audio-driven talking head (Replicate) | per-sec |
-| B-roll | Storyblocks sub | **Pexels + Pixabay** APIs | free |
+| B-roll fallback | Storyblocks sub | **Pexels + Pixabay** APIs | free |
 | Images | Midjourney | **Flux** (Replicate) | ~$0.003 |
 | Captions | Submagic $16/mo | **Whisper** (Replicate) → FFmpeg burn-in | per-sec |
 | Edit/assembly | Pictory $25/mo | **FFmpeg** on a $7 Render worker | flat |
 | Publish | their dashboard | **YouTube Data API** | free |
 
-**Per video:** faceless ≈ $0.15–0.40 · avatar ≈ $1–4 (only the talking-head call is pricey, so avatar mode renders hero intro/outro segments and uses B-roll for the body). **Fixed infra:** ~$8–30/mo.
+**Per video:** faceless ≈ $0.15–0.40 with stock visuals, or add roughly a dollar of Kie.ai AI-generated scenes · avatar ≈ $1–4 (only the talking-head call is pricey, so avatar mode renders hero intro/outro segments and uses scene video for the body). **Fixed infra:** ~$8–30/mo.
+
+## Generative AI visuals (Kie.ai)
+
+Set `KIE_API_KEY` (kie.ai → API Keys) and every faceless scene gets a **bespoke cinematic AI shot** generated from the script's per-scene `visualPrompt`, instead of generic stock footage. The engine is one env var — `KIE_VIDEO_MODEL` — so you can chase the current best price/quality model without touching code. Every AI-scene failure degrades gracefully: Kie → stock B-roll → Flux still with Ken Burns. Per-job opt-out: pick **Stock B-roll** in the dashboard's Visuals select.
 
 ## Architecture
 
@@ -49,7 +54,7 @@ apps/worker        polling worker that drains the job queue  → Render (Docker,
 
 ## Prerequisites (accounts)
 
-Neon (Postgres) · Vercel (+ Blob) · Render · Replicate · Anthropic · Pexels + Pixabay (free) · a Google Cloud OAuth client with the **YouTube Data API v3** enabled.
+Neon (Postgres) · Vercel (+ Blob) · Render · Replicate · Anthropic · Kie.ai (optional — generative AI scene video) · Pexels + Pixabay (free) · a Google Cloud OAuth client with the **YouTube Data API v3** enabled.
 
 ## Local setup
 

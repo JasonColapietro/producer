@@ -12,6 +12,9 @@ export const ScriptSchema = z.object({
       z.object({
         narration: z.string(),
         brollKeywords: z.array(z.string()).min(1).max(4),
+        // Cinematic text-to-video prompt for generative AI visuals. Optional so
+        // scripts rendered before this field existed still parse.
+        visualPrompt: z.string().optional(),
       }),
     )
     .min(3),
@@ -35,6 +38,7 @@ export async function writeScript(creds: Creds, args: WriteArgs): Promise<Script
     "Open with a 1-2 sentence hook that creates an open loop. No 'hey guys, welcome back'.",
     "Write spoken narration only — no stage directions inside narration.",
     "Each scene's brollKeywords are concrete, searchable stock-footage terms (e.g. 'city traffic timelapse', not 'success').",
+    "Each scene's visualPrompt is a single cinematic shot description for an AI video model: subject, action, setting, camera move, lighting, mood (e.g. 'slow dolly-in on a weathered Roman aqueduct at golden hour, mist drifting through the arches, cinematic, photorealistic'). One continuous shot, no people talking to camera, no on-screen text.",
     "Return ONLY valid minified JSON matching the schema. No markdown, no commentary.",
   ].join(" ");
 
@@ -49,7 +53,7 @@ export async function writeScript(creds: Creds, args: WriteArgs): Promise<Script
     ` "description": string (2-3 short paragraphs + 3-5 hashtags),`,
     ` "tags": string[] (<=20),`,
     ` "thumbnailPrompt": string (vivid image-gen prompt, no text in image),`,
-    ` "scenes": [{"narration": string, "brollKeywords": string[1..4]}] (>=3)}`,
+    ` "scenes": [{"narration": string, "brollKeywords": string[1..4], "visualPrompt": string (one cinematic AI-video shot)}] (>=3)}`,
   ].join("\n");
 
   const res = await client.messages.create({

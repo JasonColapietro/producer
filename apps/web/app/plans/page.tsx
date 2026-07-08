@@ -9,6 +9,7 @@ import {
   runNowAction,
 } from "./actions";
 import type { ContentPlan } from "@producer/core/web";
+import SiteNav from "../components/SiteNav";
 
 export const dynamic = "force-dynamic";
 
@@ -29,17 +30,8 @@ export default async function PlansPage() {
 
   return (
     <main className="wrap">
-      <div className="brand">
-        <h1>
-          Tube<span className="dot">●</span>Forge
-        </h1>
-        <span className="mode-tag">{channel.name}</span>
-      </div>
+      <SiteNav active="autopilot" channelName={channel.name} />
       <p className="sub">
-        <a href="/" style={{ color: "var(--muted)", textDecoration: "none" }}>
-          ← Dashboard
-        </a>
-        {" · "}
         Autopilot — content plans that generate videos while you sleep.
       </p>
 

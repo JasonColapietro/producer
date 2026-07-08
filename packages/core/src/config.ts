@@ -10,6 +10,11 @@ export interface Creds {
   replicateApiToken: string;
   pexelsApiKey: string;
   pixabayApiKey: string;
+  /** Kie.ai key — unlocks generative AI video scenes. Optional: without it the
+   * pipeline silently uses stock B-roll, so faceless mode still works keyless. */
+  kieApiKey?: string;
+  /** Kie.ai model id for scene video. Swap via KIE_VIDEO_MODEL. */
+  kieVideoModel: string;
   blobToken: string;
   google: {
     clientId: string;
@@ -52,6 +57,8 @@ export function resolveCreds(channel: Pick<Channel, "secrets">): Creds {
     replicateApiToken: pick(s.replicateApiToken, "REPLICATE_API_TOKEN"),
     pexelsApiKey: pick(s.pexelsApiKey, "PEXELS_API_KEY"),
     pixabayApiKey: pick(s.pixabayApiKey, "PIXABAY_API_KEY"),
+    kieApiKey: s.kieApiKey ?? process.env.KIE_API_KEY ?? undefined,
+    kieVideoModel: process.env.KIE_VIDEO_MODEL ?? KIE_DEFAULT_VIDEO_MODEL,
     blobToken: pick(undefined, "BLOB_READ_WRITE_TOKEN"),
     google: {
       clientId: pick(undefined, "GOOGLE_CLIENT_ID"),
@@ -66,6 +73,12 @@ export function resolveCreds(channel: Pick<Channel, "secrets">): Creds {
  * voice/avatar/image engine without touching pipeline code. Keep cost-effective
  * open models here — this is the whole "don't pay for the shilled stack" lever.
  */
+/**
+ * Default Kie.ai model for generative scene video. Chosen for best
+ * quality-per-dollar on short 720p B-roll clips. Override with KIE_VIDEO_MODEL.
+ */
+export const KIE_DEFAULT_VIDEO_MODEL = "veo3_fast"; // placeholder — finalized below
+
 // Verified live on replicate.com (Jun 2026). Swap these to change the engine.
 export const MODELS = {
   // Zero-shot voice clone from a short reference clip. Input: text, speaker(url), language, cleanup_voice.

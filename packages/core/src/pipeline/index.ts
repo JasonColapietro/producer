@@ -9,6 +9,7 @@ import { animateAvatar } from "../providers/avatar.js";
 import { syncLips } from "../providers/lipsync.js";
 import { transcribeToSrt } from "../providers/captions.js";
 import { generateImage } from "../providers/images.js";
+import { generateSceneVideo } from "../providers/kie.js";
 import { writeScript } from "../providers/llm.js";
 import { fetchBroll } from "../providers/stock.js";
 import { download, putBuffer, putFile } from "../providers/storage.js";
@@ -131,6 +132,10 @@ export async function processJob(jobId: string): Promise<void> {
     if (!voiceRef) throw new Error("No voice reference (channel.defaults.voiceRefUrl or STOCK_VOICE_REF_URL)");
     const avatarImg = opts.avatarImageUrl;
     const heroScenes = job.mode === "avatar" && avatarImg ? new Set([0, script.scenes.length - 1]) : new Set<number>();
+    // Generative AI visuals (Kie.ai) are the default whenever a key is present;
+    // "stock" opts out per job. Every AI failure degrades to stock → Flux still,
+    // so a Kie outage can never fail a render.
+    const wantAiVisuals = opts.visuals !== "stock" && Boolean(creds.kieApiKey);
 
     // 2) Per scene: voice + visual → uniform clip
     const clipPaths: string[] = [];
@@ -142,21 +147,42 @@ export async function processJob(jobId: string): Promise<void> {
       const audioPath = join(dir, `a${i}.wav`);
       await download(audioUrl, audioPath);
 
-      let visualPath: string;
-      let visualKind: VisualKind;
+      let visualPath: string | undefined;
+      let visualKind: VisualKind = "video";
       if (heroScenes.has(i) && avatarImg) {
         const vid = await animateAvatar(creds, avatarImg, audioUrl);
         visualPath = join(dir, `v${i}.mp4`);
         await download(vid, visualPath);
         visualKind = "avatar";
       } else {
-        const broll = await fetchBroll(creds, scene.brollKeywords);
-        if (broll) {
-          visualPath = join(dir, `v${i}.mp4`);
-          await download(broll.url, visualPath);
-          visualKind = "video";
-          await addAsset(jobId, "broll", broll.url, { keywords: scene.brollKeywords, source: broll.source });
-        } else {
+        // 1st choice: bespoke generative shot from Kie.ai (loops to fill narration)
+        if (wantAiVisuals) {
+          try {
+            const prompt =
+              scene.visualPrompt ??
+              `${scene.brollKeywords.join(", ")}, cinematic, slow camera move, photorealistic, no text`;
+            const vid = await generateSceneVideo(creds, prompt);
+            visualPath = join(dir, `v${i}.mp4`);
+            await download(vid, visualPath);
+            visualKind = "video";
+            await addAsset(jobId, "broll", vid, { source: "kie", model: creds.kieVideoModel, prompt });
+          } catch (e) {
+            visualPath = undefined;
+            console.warn(`[pipeline] kie scene ${i} fell back to stock:`, e instanceof Error ? e.message : e);
+          }
+        }
+        // 2nd choice: free stock b-roll
+        if (!visualPath) {
+          const broll = await fetchBroll(creds, scene.brollKeywords);
+          if (broll) {
+            visualPath = join(dir, `v${i}.mp4`);
+            await download(broll.url, visualPath);
+            visualKind = "video";
+            await addAsset(jobId, "broll", broll.url, { keywords: scene.brollKeywords, source: broll.source });
+          }
+        }
+        // last resort: Flux still with Ken Burns
+        if (!visualPath) {
           const img = await generateImage(creds, `${scene.brollKeywords.join(", ")}, cinematic, high detail`);
           visualPath = join(dir, `v${i}.jpg`);
           await download(img, visualPath);
