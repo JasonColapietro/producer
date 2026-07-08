@@ -198,7 +198,7 @@ export default async function Dashboard() {
       </div>
 
       <footer className="footer">
-        <span>Producer — the AI video studio by Suede Labs.</span>
+        <span>Suede Cinema — the AI video studio by Suede Labs.</span>
         <span>
           <a href="https://suedeai.ai">suedeai.ai</a>
         </span>

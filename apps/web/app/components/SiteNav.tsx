@@ -3,13 +3,13 @@ interface SiteNavProps {
   channelName?: string;
 }
 
-/** Floating glass top bar shared by every page. */
+/** Sticky institutional topbar shared by every page. */
 export default function SiteNav({ active, channelName }: SiteNavProps) {
   return (
     <header className="topbar">
       <a className="wordmark" href="/">
         <span className="mark" aria-hidden />
-        Producer <span className="by">by Suede Labs</span>
+        Suede <em>Cinema</em>
       </a>
       {channelName && <span className="mode-tag">{channelName}</span>}
       <nav className="topnav" aria-label="Primary">
@@ -17,7 +17,7 @@ export default function SiteNav({ active, channelName }: SiteNavProps) {
           Studio
         </a>
         <a href="/plans" className={active === "autopilot" ? "active" : undefined}>
-          ⚡ Autopilot
+          Autopilot
         </a>
       </nav>
     </header>

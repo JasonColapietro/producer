@@ -1,12 +1,14 @@
-# Producer (TubeForge)
+# Suede Cinema (formerly TubeForge / Producer)
 
 Faceless **and** avatar YouTube videos on autopilot — **your keys, your channel, pennies per render.**
+
+_Codebase name stays `producer` (package names, repo, `producer.suedeai.ai` domain) — this is a display-name rebrand only._
 
 This is the cost-effective rebuild of the "Claude + YouTube = $X/mo" creator stack: same assembly line (idea → script → voice → visuals → captions → assemble → publish), but every paid tool the gurus shill is swapped for a model rented **per call**. No HeyGen, no ElevenLabs subscription, no Submagic, no Pictory. Built BYO-keys and tenant-ready so it can become a product.
 
 ## The swap (what it replaces)
 
-| Stage | Shilled tool | Producer uses | Cost |
+| Stage | Shilled tool | Suede Cinema uses | Cost |
 |---|---|---|---|
 | Script | Jasper / prompt packs | **Claude** (Anthropic API) | cents |
 | Scene video | Runway/Pika subs $30–95/mo | **Kie.ai** generative video (per clip) | cents/scene |
