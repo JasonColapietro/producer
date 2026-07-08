@@ -37,6 +37,10 @@ async function http<T>(key: string, path: string, init?: RequestInit): Promise<T
 export interface SceneVideoOptions {
   /** "16:9" (default) or "9:16". */
   aspectRatio?: "16:9" | "9:16";
+  /** Output resolution for marketplace models (Seedance et al). */
+  resolution?: "480p" | "720p" | "1080p";
+  /** Clip length in seconds — a string per the unified API schema. */
+  duration?: "5" | "10";
   /** Poll timeout — video gen can take a few minutes. */
   timeoutMs?: number;
 }
@@ -63,7 +67,7 @@ export function pickUrl(resultJson: unknown): string | null {
 export async function generateSceneVideo(
   creds: Creds,
   prompt: string,
-  { aspectRatio = "16:9", timeoutMs = 8 * 60_000 }: SceneVideoOptions = {},
+  { aspectRatio = "16:9", resolution = "720p", duration = "5", timeoutMs = 10 * 60_000 }: SceneVideoOptions = {},
 ): Promise<string> {
   const key = creds.kieApiKey;
   if (!key) throw new Error("Kie.ai key missing (channel secret kieApiKey or env KIE_API_KEY)");
@@ -74,11 +78,12 @@ export async function generateSceneVideo(
     // ── Dedicated Veo endpoint ──────────────────────────────────────────────
     const created = await http<{ taskId: string }>(key, "/api/v1/veo/generate", {
       method: "POST",
-      body: JSON.stringify({ model, prompt, aspectRatio, enableFallback: true }),
+      // aspect_ratio per current docs; aspectRatio kept for the legacy schema.
+      body: JSON.stringify({ model, prompt, aspect_ratio: aspectRatio, aspectRatio, enableFallback: true }),
     });
     for (;;) {
       if (Date.now() > deadline) throw new Error(`Kie ${model} timeout`);
-      await sleep(5000);
+      await sleep(15_000);
       const rec = await http<{
         successFlag: number;
         errorMessage?: string | null;
@@ -98,11 +103,11 @@ export async function generateSceneVideo(
   // ── Unified marketplace endpoint ──────────────────────────────────────────
   const created = await http<{ taskId: string }>(key, "/api/v1/jobs/createTask", {
     method: "POST",
-    body: JSON.stringify({ model, input: { prompt, aspect_ratio: aspectRatio } }),
+    body: JSON.stringify({ model, input: { prompt, aspect_ratio: aspectRatio, resolution, duration } }),
   });
   for (;;) {
     if (Date.now() > deadline) throw new Error(`Kie ${model} timeout`);
-    await sleep(5000);
+    await sleep(15_000);
     const rec = await http<{
       state: "waiting" | "queuing" | "generating" | "success" | "fail";
       failMsg?: string | null;

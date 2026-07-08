@@ -74,10 +74,13 @@ export function resolveCreds(channel: Pick<Channel, "secrets">): Creds {
  * open models here — this is the whole "don't pay for the shilled stack" lever.
  */
 /**
- * Default Kie.ai model for generative scene video. Chosen for best
- * quality-per-dollar on short 720p B-roll clips. Override with KIE_VIDEO_MODEL.
+ * Default Kie.ai model for generative scene video — Seedance 1.0 Lite,
+ * ~$0.11 per 5s clip at 720p (verified Jul 2026): the cheapest solid
+ * text-to-video on the platform. Override with KIE_VIDEO_MODEL. Good swaps:
+ * "kling/v2-1-standard" ($0.125/5s) · "veo3_fast" ($0.30/8s, native audio,
+ * best-looking — routed to Kie's dedicated Veo endpoint automatically).
  */
-export const KIE_DEFAULT_VIDEO_MODEL = "veo3_fast"; // placeholder — finalized below
+export const KIE_DEFAULT_VIDEO_MODEL = "bytedance/v1-lite-text-to-video";
 
 // Verified live on replicate.com (Jun 2026). Swap these to change the engine.
 export const MODELS = {

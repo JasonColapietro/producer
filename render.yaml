@@ -21,5 +21,7 @@ services:
         sync: false
       - key: PIXABAY_API_KEY
         sync: false
+      - key: KIE_API_KEY # optional — unlocks generative AI scene video
+        sync: false
       - key: WORKER_POLL_MS
         value: "5000"

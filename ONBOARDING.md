@@ -30,6 +30,17 @@ You create the accounts (I can't accept ToS or verify email/phone/payment as you
 
 **Models are already wired and verified** in `packages/core/src/config.ts` — XTTS-v2 (voice), SadTalker (avatar), Flux-schnell (images), Whisper (captions). Nothing to set.
 
+## 2b. Kie.ai (generative AI scene video — optional but the wow factor)
+
+1. [kie.ai](https://kie.ai) → sign up → **API Keys** → create + copy.
+2. Buy a credit pack (prepaid, from $5 = 1,000 credits; 1 credit = $0.005). New accounts get trial credits.
+
+`KIE_API_KEY=...`
+
+With the key set, every faceless scene is a bespoke AI-generated cinematic shot instead of stock footage — **~$0.11 per 5s clip** on the default engine (Seedance 1.0 Lite @720p), so about **$1/video**. No key → free stock B-roll, same as before; any Kie failure also falls back automatically.
+
+**Cost/quality lever:** `KIE_VIDEO_MODEL` swaps the engine without code changes — `bytedance/v1-lite-text-to-video` (default, $0.11/5s) · `kling/v2-1-standard` ($0.125/5s) · `veo3_fast` ($0.30/8s, native audio, the best-looking). Rate limit: 20 new generations per 10s — far above what one worker produces.
+
 ## 3. Neon (Postgres — the shared brain)
 
 1. [console.neon.tech/signup](https://console.neon.tech/signup) → create a Project. Free tier: 0.5 GB + 100 compute-hrs/mo — ample.

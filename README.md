@@ -22,7 +22,17 @@ This is the cost-effective rebuild of the "Claude + YouTube = $X/mo" creator sta
 
 ## Generative AI visuals (Kie.ai)
 
-Set `KIE_API_KEY` (kie.ai → API Keys) and every faceless scene gets a **bespoke cinematic AI shot** generated from the script's per-scene `visualPrompt`, instead of generic stock footage. The engine is one env var — `KIE_VIDEO_MODEL` — so you can chase the current best price/quality model without touching code. Every AI-scene failure degrades gracefully: Kie → stock B-roll → Flux still with Ken Burns. Per-job opt-out: pick **Stock B-roll** in the dashboard's Visuals select.
+Set `KIE_API_KEY` (kie.ai → API Keys, prepaid credits, 1 credit = $0.005) and every faceless scene gets a **bespoke cinematic AI shot** generated from the script's per-scene `visualPrompt`, instead of generic stock footage. Every AI-scene failure degrades gracefully: Kie → stock B-roll → Flux still with Ken Burns. Per-job opt-out: pick **Stock B-roll** in the dashboard's Visuals select.
+
+The engine is one env var — `KIE_VIDEO_MODEL` — so you can chase the current best price/quality model without touching code (verified Jul 2026):
+
+| Model | `KIE_VIDEO_MODEL` | Per clip | Why |
+|---|---|---|---|
+| **Seedance 1.0 Lite** (default) | `bytedance/v1-lite-text-to-video` | **$0.11** / 5s @720p | cheapest solid text-to-video on Kie |
+| Kling 2.1 Standard | `kling/v2-1-standard` | $0.125 / 5s | better motion |
+| Veo 3.1 Fast | `veo3_fast` | $0.30 / 8s | best-looking, native audio, 1080p |
+
+A typical 6-minute faceless video runs ~8–12 scenes, so AI visuals add roughly **$0.90–1.30 per video** on the default engine. Clips are downloaded to Blob-backed storage during the render (Kie result URLs expire).
 
 ## Architecture
 
