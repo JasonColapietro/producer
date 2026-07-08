@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 interface ScriptScene {
   narration: string;
   brollKeywords?: string[];
+  visualPrompt?: string;
 }
 interface ScriptDoc {
   title?: string;
@@ -311,6 +312,17 @@ export default async function JobDetailPage({
                   <p style={{ margin: "0 0 6px", lineHeight: 1.6 }}>
                     {scene.narration}
                   </p>
+                  {scene.visualPrompt && (
+                    <p
+                      style={{
+                        margin: "0 0 4px",
+                        fontSize: 12,
+                        color: "var(--muted)",
+                      }}
+                    >
+                      AI shot: {scene.visualPrompt}
+                    </p>
+                  )}
                   {scene.brollKeywords && scene.brollKeywords.length > 0 && (
                     <p
                       style={{
