@@ -18,9 +18,13 @@ interface KieEnvelope<T> {
   data?: T;
 }
 
+/** Per-request cutoff so one stalled connection can't block a render past its overall deadline. */
+const REQUEST_TIMEOUT_MS = 30_000;
+
 async function http<T>(key: string, path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...init,
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     headers: {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",

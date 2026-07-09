@@ -160,7 +160,7 @@ export async function processJob(jobId: string): Promise<void> {
         if (wantAiVisuals) {
           try {
             const prompt =
-              scene.visualPrompt ??
+              scene.visualPrompt?.trim() ||
               `${scene.brollKeywords.join(", ")}, cinematic, slow camera move, photorealistic, no text`;
             const vid = await generateSceneVideo(creds, prompt);
             visualPath = join(dir, `v${i}.mp4`);
@@ -174,12 +174,17 @@ export async function processJob(jobId: string): Promise<void> {
         }
         // 2nd choice: free stock b-roll
         if (!visualPath) {
-          const broll = await fetchBroll(creds, scene.brollKeywords);
-          if (broll) {
-            visualPath = join(dir, `v${i}.mp4`);
-            await download(broll.url, visualPath);
-            visualKind = "video";
-            await addAsset(jobId, "broll", broll.url, { keywords: scene.brollKeywords, source: broll.source });
+          try {
+            const broll = await fetchBroll(creds, scene.brollKeywords);
+            if (broll) {
+              visualPath = join(dir, `v${i}.mp4`);
+              await download(broll.url, visualPath);
+              visualKind = "video";
+              await addAsset(jobId, "broll", broll.url, { keywords: scene.brollKeywords, source: broll.source });
+            }
+          } catch (e) {
+            visualPath = undefined;
+            console.warn(`[pipeline] stock scene ${i} fell back to Flux:`, e instanceof Error ? e.message : e);
           }
         }
         // last resort: Flux still with Ken Burns

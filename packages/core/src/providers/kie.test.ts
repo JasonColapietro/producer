@@ -123,4 +123,51 @@ describe("generateSceneVideo", () => {
     vi.stubGlobal("fetch", async () => jsonResponse({ code: 402, msg: "insufficient credits" }));
     await expect(generateSceneVideo(creds, "shot")).rejects.toThrow(/insufficient credits/);
   });
+
+  it("throws on a 429 rate-limit response instead of hanging or crashing the process", async () => {
+    vi.stubGlobal(
+      "fetch",
+      async () =>
+        new Response("Too Many Requests", {
+          status: 429,
+          headers: { "Content-Type": "text/plain" },
+        }),
+    );
+    await expect(generateSceneVideo(creds, "shot")).rejects.toThrow(/Kie 429/);
+  });
+
+  it("throws a bounded error instead of an unhandled rejection when the body is not JSON", async () => {
+    vi.stubGlobal(
+      "fetch",
+      async () => new Response("<html>502 Bad Gateway</html>", { status: 502 }),
+    );
+    await expect(generateSceneVideo(creds, "shot")).rejects.toThrow(/Kie 502/);
+  });
+
+  it("propagates a network-level failure (e.g. DNS/connection error) rather than hanging", async () => {
+    vi.stubGlobal("fetch", async () => {
+      throw new TypeError("fetch failed: getaddrinfo ENOTFOUND api.kie.ai");
+    });
+    await expect(generateSceneVideo(creds, "shot")).rejects.toThrow(/ENOTFOUND/);
+  });
+
+  it("wires a bounded per-request timeout so a hung connection aborts instead of blocking forever", async () => {
+    // AbortSignal.timeout() uses a native timer vitest's fake timers can't advance,
+    // so we substitute a controllable signal to deterministically simulate the timeout firing.
+    const controller = new AbortController();
+    const timeoutSpy = vi.spyOn(AbortSignal, "timeout").mockReturnValue(controller.signal);
+    vi.stubGlobal("fetch", (_url: string | URL, init?: RequestInit) => {
+      return new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          reject(new DOMException("This operation was aborted", "AbortError"));
+        });
+      });
+    });
+
+    const p = generateSceneVideo(creds, "shot");
+    p.catch(() => {});
+    expect(timeoutSpy).toHaveBeenCalledWith(30_000);
+    controller.abort();
+    await expect(p).rejects.toThrow(/aborted/i);
+  });
 });
