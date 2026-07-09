@@ -8,8 +8,10 @@ export interface Creds {
   anthropicApiKey: string;
   anthropicModel: string;
   replicateApiToken: string;
-  pexelsApiKey: string;
-  pixabayApiKey: string;
+  /** Stock B-roll fallback keys. Optional: fetchBroll skips any provider whose
+   * key is missing, so neither is required when Kie.ai or Flux cover visuals. */
+  pexelsApiKey?: string;
+  pixabayApiKey?: string;
   /** Kie.ai key — unlocks generative AI video scenes. Optional: without it the
    * pipeline silently uses stock B-roll, so faceless mode still works keyless. */
   kieApiKey?: string;
@@ -55,8 +57,8 @@ export function resolveCreds(channel: Pick<Channel, "secrets">): Creds {
     anthropicApiKey: pick(s.anthropicApiKey, "ANTHROPIC_API_KEY"),
     anthropicModel: process.env.ANTHROPIC_MODEL ?? "claude-fable-5",
     replicateApiToken: pick(s.replicateApiToken, "REPLICATE_API_TOKEN"),
-    pexelsApiKey: pick(s.pexelsApiKey, "PEXELS_API_KEY"),
-    pixabayApiKey: pick(s.pixabayApiKey, "PIXABAY_API_KEY"),
+    pexelsApiKey: s.pexelsApiKey ?? process.env.PEXELS_API_KEY ?? undefined,
+    pixabayApiKey: s.pixabayApiKey ?? process.env.PIXABAY_API_KEY ?? undefined,
     kieApiKey: s.kieApiKey ?? process.env.KIE_API_KEY ?? undefined,
     kieVideoModel: process.env.KIE_VIDEO_MODEL ?? KIE_DEFAULT_VIDEO_MODEL,
     blobToken: pick(undefined, "BLOB_READ_WRITE_TOKEN"),

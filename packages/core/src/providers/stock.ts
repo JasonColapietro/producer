@@ -10,10 +10,11 @@ interface Broll {
 }
 
 async function fromPexels(
-  key: string,
+  key: string | undefined,
   query: string,
   orientation: Orientation,
 ): Promise<Broll | null> {
+  if (!key) return null;
   const u = new URL("https://api.pexels.com/videos/search");
   u.searchParams.set("query", query);
   u.searchParams.set("per_page", "5");
@@ -38,10 +39,11 @@ async function fromPexels(
 }
 
 async function fromPixabay(
-  key: string,
+  key: string | undefined,
   query: string,
   orientation: Orientation,
 ): Promise<Broll | null> {
+  if (!key) return null;
   const u = new URL("https://pixabay.com/api/videos/");
   u.searchParams.set("key", key);
   u.searchParams.set("q", query);
