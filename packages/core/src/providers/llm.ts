@@ -28,6 +28,31 @@ interface WriteArgs {
   lengthMinutes?: number;
 }
 
+/** Extract the {...} / [...] span from a text response and JSON.parse it. */
+function extractJson(text: string, open: "{" | "[", close: "}" | "]"): unknown {
+  if (!text) throw new Error("model returned no text content (empty or refused response)");
+  const json = text.startsWith(open) ? text : text.slice(text.indexOf(open), text.lastIndexOf(close) + 1);
+  return JSON.parse(json);
+}
+
+/**
+ * Some Claude responses come back with an empty/short text block (a soft
+ * refusal or a truncated turn) even for benign prompts — same request,
+ * different roll of the dice. Retry a couple times before giving up rather
+ * than failing the whole job on one flaky call.
+ */
+async function withRetry<T>(attempt: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await attempt();
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr;
+}
+
 export async function writeScript(creds: Creds, args: WriteArgs): Promise<Script> {
   const client = new Anthropic({ apiKey: creds.anthropicApiKey });
   const minutes = args.lengthMinutes ?? 6;
@@ -56,21 +81,22 @@ export async function writeScript(creds: Creds, args: WriteArgs): Promise<Script
     ` "scenes": [{"narration": string, "brollKeywords": string[1..4], "visualPrompt": string (one cinematic AI-video shot)}] (>=3)}`,
   ].join("\n");
 
-  const res = await client.messages.create({
-    model: creds.anthropicModel,
-    max_tokens: 4000,
-    system,
-    messages: [{ role: "user", content: user }],
+  return withRetry(async () => {
+    const res = await client.messages.create({
+      model: creds.anthropicModel,
+      max_tokens: 4000,
+      system,
+      messages: [{ role: "user", content: user }],
+    });
+
+    const text = res.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("")
+      .trim();
+
+    return ScriptSchema.parse(extractJson(text, "{", "}"));
   });
-
-  const text = res.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("")
-    .trim();
-
-  const json = text.startsWith("{") ? text : text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
-  return ScriptSchema.parse(JSON.parse(json));
 }
 
 /** Invent fresh, specific video topics for a niche — autopilot's backlog refill. */
@@ -83,24 +109,25 @@ export async function ideateTopics(
     ? `\n\nDo NOT repeat or closely echo these already-used topics:\n- ${args.avoid.slice(0, 40).join("\n- ")}`
     : "";
 
-  const res = await client.messages.create({
-    model: creds.anthropicModel,
-    max_tokens: 1024,
-    system:
-      "You are a YouTube growth strategist. Generate specific, curiosity-driven video topics with a built-in hook — concrete title-like ideas, never vague categories. Return ONLY a JSON array of strings.",
-    messages: [
-      {
-        role: "user",
-        content: `Niche: ${args.niche}\nGenerate ${args.count} fresh video topics as a JSON array of strings.${avoid}`,
-      },
-    ],
-  });
+  return withRetry(async () => {
+    const res = await client.messages.create({
+      model: creds.anthropicModel,
+      max_tokens: 1024,
+      system:
+        "You are a YouTube growth strategist. Generate specific, curiosity-driven video topics with a built-in hook — concrete title-like ideas, never vague categories. Return ONLY a JSON array of strings.",
+      messages: [
+        {
+          role: "user",
+          content: `Niche: ${args.niche}\nGenerate ${args.count} fresh video topics as a JSON array of strings.${avoid}`,
+        },
+      ],
+    });
 
-  const text = res.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("")
-    .trim();
-  const json = text.startsWith("[") ? text : text.slice(text.indexOf("["), text.lastIndexOf("]") + 1);
-  return z.array(z.string()).parse(JSON.parse(json));
+    const text = res.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("")
+      .trim();
+    return z.array(z.string()).parse(extractJson(text, "[", "]"));
+  });
 }

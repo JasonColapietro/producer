@@ -55,7 +55,6 @@ export function googleConfig() {
 }
 
 export function resolveCreds(channel: Pick<Channel, "secrets">): Creds {
-  console.log("BUILD_MARKER_v3_google_optional", { hasGoogle: hasGoogleConfig() });
   const s = channel.secrets ?? {};
   return {
     anthropicApiKey: pick(s.anthropicApiKey, "ANTHROPIC_API_KEY"),
