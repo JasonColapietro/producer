@@ -1,6 +1,6 @@
 import "server-only";
 import { db, schema } from "@producer/core/web";
-import { desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
 const { users, channels, jobs } = schema;
 
@@ -37,9 +37,13 @@ export async function listJobs(channelId: string, limit = 25) {
 async function jobAssetMap(jobIds: string[], kind: schema.AssetKind) {
   const map = new Map<string, string>();
   if (jobIds.length === 0) return map;
-  const rows = await db().select().from(schema.assets);
+  const rows = await db()
+    .select()
+    .from(schema.assets)
+    .where(and(inArray(schema.assets.jobId, jobIds), eq(schema.assets.kind, kind)))
+    .orderBy(asc(schema.assets.createdAt));
   for (const a of rows) {
-    if (a.kind === kind && jobIds.includes(a.jobId)) map.set(a.jobId, a.url); // last wins = newest
+    map.set(a.jobId, a.url); // last wins = newest
   }
   return map;
 }
