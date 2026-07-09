@@ -22,9 +22,7 @@ export default async function Dashboard() {
   const channel = await ensureOwnerChannel();
   const jobs = await listJobs(channel.id);
   const ids = jobs.map((j) => j.id);
-  const thumbs = await jobThumbnails(ids);
-  const finals = await jobFinals(ids);
-  const scripts = await jobScripts(ids);
+  const [thumbs, finals, scripts] = await Promise.all([jobThumbnails(ids), jobFinals(ids), jobScripts(ids)]);
   const connected = Boolean(channel.youtubeRefreshToken);
   const kieEnabled = Boolean(process.env.KIE_API_KEY);
 

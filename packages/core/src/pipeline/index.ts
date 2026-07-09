@@ -46,20 +46,21 @@ async function stage(id: string, s: JobStage) {
  * Publishing happens here too unless the channel holds for manual approval.
  */
 export async function processJob(jobId: string): Promise<void> {
-  const rows = await db().select().from(jobs).where(eq(jobs.id, jobId)).limit(1);
-  const job = rows[0];
-  if (!job) throw new Error(`job ${jobId} not found`);
-
-  const chRows = await db().select().from(channels).where(eq(channels.id, job.channelId)).limit(1);
-  const channel = chRows[0];
-  if (!channel) throw new Error(`channel ${job.channelId} not found`);
-
-  const creds = resolveCreds(channel);
-  const opts = { ...channel.defaults, ...job.options };
-  const dims = LANDSCAPE;
-  const dir = await mkdtemp(join(tmpdir(), `tf-${jobId}-`));
-
+  let dir: string | undefined;
   try {
+    const rows = await db().select().from(jobs).where(eq(jobs.id, jobId)).limit(1);
+    const job = rows[0];
+    if (!job) throw new Error(`job ${jobId} not found`);
+
+    const chRows = await db().select().from(channels).where(eq(channels.id, job.channelId)).limit(1);
+    const channel = chRows[0];
+    if (!channel) throw new Error(`channel ${job.channelId} not found`);
+
+    const creds = resolveCreds(channel);
+    const opts = { ...channel.defaults, ...job.options };
+    const dims = LANDSCAPE;
+    dir = await mkdtemp(join(tmpdir(), `tf-${jobId}-`));
+
     await setJob(jobId, { status: "processing", attempts: job.attempts + 1, error: null });
 
     // ── Voiceover mode: script-first pass, then lipsync on resume ────────────
@@ -244,7 +245,7 @@ export async function processJob(jobId: string): Promise<void> {
     await setJob(jobId, { status: "failed", error: e instanceof Error ? e.message : String(e) });
     throw e;
   } finally {
-    await rm(dir, { recursive: true, force: true });
+    if (dir) await rm(dir, { recursive: true, force: true });
   }
 }
 
@@ -253,38 +254,43 @@ export async function processJob(jobId: string): Promise<void> {
  * an approved job in a fresh worker run) the final asset is pulled from Blob.
  */
 export async function publishJob(jobId: string, localFinalPath?: string): Promise<string> {
-  const job = (await db().select().from(jobs).where(eq(jobs.id, jobId)).limit(1))[0];
-  if (!job) throw new Error(`job ${jobId} not found`);
-  const channel = (await db().select().from(channels).where(eq(channels.id, job.channelId)).limit(1))[0];
-  if (!channel?.youtubeRefreshToken) throw new Error("channel has no YouTube refresh token");
-  const creds = resolveCreds(channel);
-
-  await setJob(jobId, { status: "publishing", stage: "publish" });
-
-  let path = localFinalPath;
-  let tmp: string | undefined;
-  if (!path) {
-    const finalAsset = (await db().select().from(assets).where(eq(assets.jobId, jobId)))
-      .filter((a) => a.kind === "final")
-      .at(-1);
-    if (!finalAsset) throw new Error("no final asset to publish");
-    tmp = join(tmpdir(), `tf-pub-${jobId}.mp4`);
-    await download(finalAsset.url, tmp);
-    path = tmp;
-  }
-
   try {
-    const videoId = await uploadVideo(creds, channel.youtubeRefreshToken, {
-      filePath: path,
-      title: job.title ?? job.topic,
-      description: job.description ?? "",
-      tags: [],
-      privacy: job.options.privacy ?? "private",
-      publishAt: job.scheduledAt ? job.scheduledAt.toISOString() : undefined,
-    });
-    await setJob(jobId, { status: "published", stage: "done", publishedVideoId: videoId });
-    return videoId;
-  } finally {
-    if (tmp) await rm(tmp, { force: true });
+    const job = (await db().select().from(jobs).where(eq(jobs.id, jobId)).limit(1))[0];
+    if (!job) throw new Error(`job ${jobId} not found`);
+    const channel = (await db().select().from(channels).where(eq(channels.id, job.channelId)).limit(1))[0];
+    if (!channel?.youtubeRefreshToken) throw new Error("channel has no YouTube refresh token");
+    const creds = resolveCreds(channel);
+
+    await setJob(jobId, { status: "publishing", stage: "publish" });
+
+    let path = localFinalPath;
+    let tmp: string | undefined;
+    if (!path) {
+      const finalAsset = (await db().select().from(assets).where(eq(assets.jobId, jobId)))
+        .filter((a) => a.kind === "final")
+        .at(-1);
+      if (!finalAsset) throw new Error("no final asset to publish");
+      tmp = join(tmpdir(), `tf-pub-${jobId}.mp4`);
+      await download(finalAsset.url, tmp);
+      path = tmp;
+    }
+
+    try {
+      const videoId = await uploadVideo(creds, channel.youtubeRefreshToken, {
+        filePath: path,
+        title: job.title ?? job.topic,
+        description: job.description ?? "",
+        tags: [],
+        privacy: job.options.privacy ?? "private",
+        publishAt: job.scheduledAt ? job.scheduledAt.toISOString() : undefined,
+      });
+      await setJob(jobId, { status: "published", stage: "done", publishedVideoId: videoId });
+      return videoId;
+    } finally {
+      if (tmp) await rm(tmp, { force: true });
+    }
+  } catch (e) {
+    await setJob(jobId, { status: "failed", error: e instanceof Error ? e.message : String(e) });
+    throw e;
   }
 }
