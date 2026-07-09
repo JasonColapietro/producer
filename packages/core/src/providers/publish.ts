@@ -50,6 +50,7 @@ export async function uploadVideo(
   refreshToken: string,
   args: UploadArgs,
 ): Promise<string> {
+  if (!creds.google) throw new Error("Missing Google OAuth config (GOOGLE_CLIENT_ID/SECRET/OAUTH_REDIRECT)");
   const auth = oauth(creds.google);
   auth.setCredentials({ refresh_token: refreshToken });
   const youtube = google.youtube({ version: "v3", auth });

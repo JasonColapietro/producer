@@ -18,7 +18,10 @@ export interface Creds {
   /** Kie.ai model id for scene video. Swap via KIE_VIDEO_MODEL. */
   kieVideoModel: string;
   blobToken: string;
-  google: {
+  /** Google OAuth config for YouTube publishing. Optional: only "youtube"-target
+   * jobs ever call uploadVideo(), so "download"-target jobs (the default) run
+   * fine without it — uploadVideo itself throws if it's actually needed and missing. */
+  google?: {
     clientId: string;
     clientSecret: string;
     redirect: string;
@@ -62,11 +65,13 @@ export function resolveCreds(channel: Pick<Channel, "secrets">): Creds {
     kieApiKey: s.kieApiKey ?? process.env.KIE_API_KEY ?? undefined,
     kieVideoModel: process.env.KIE_VIDEO_MODEL ?? KIE_DEFAULT_VIDEO_MODEL,
     blobToken: pick(undefined, "BLOB_READ_WRITE_TOKEN"),
-    google: {
-      clientId: pick(undefined, "GOOGLE_CLIENT_ID"),
-      clientSecret: pick(undefined, "GOOGLE_CLIENT_SECRET"),
-      redirect: pick(undefined, "GOOGLE_OAUTH_REDIRECT"),
-    },
+    google: hasGoogleConfig()
+      ? {
+          clientId: pick(undefined, "GOOGLE_CLIENT_ID"),
+          clientSecret: pick(undefined, "GOOGLE_CLIENT_SECRET"),
+          redirect: pick(undefined, "GOOGLE_OAUTH_REDIRECT"),
+        }
+      : undefined,
   };
 }
 
