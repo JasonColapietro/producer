@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
-
-const SITE_URL = "https://producer.suedeai.ai";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "./site";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -12,34 +11,78 @@ const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
 });
 
+const TITLE = `${SITE_NAME} — AI video studio on autopilot`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Suede Cinema — AI video studio on autopilot",
-  description:
-    "Type a topic, get a finished video. Claude-written scripts, cinematic AI video via Kie.ai, cloned voiceover, burned-in captions — published to YouTube for pennies per render.",
+  title: TITLE,
+  description: SITE_DESCRIPTION,
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Suede Cinema — AI video studio on autopilot",
-    description:
-      "Type a topic, get a finished video. Claude scripts, cinematic AI video, cloned voice, captions — pennies per render.",
+    title: TITLE,
+    description: SITE_DESCRIPTION,
     url: SITE_URL,
-    siteName: "Suede Cinema",
+    siteName: SITE_NAME,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Suede Cinema — AI video studio on autopilot",
-    description:
-      "Type a topic, get a finished video. Claude scripts, cinematic AI video, cloned voice, captions — pennies per render.",
+    title: TITLE,
+    description: SITE_DESCRIPTION,
   },
+};
+
+// The host published no structured data at all, so nothing machine-readable
+// tied "Suede Cinema" to Suede Labs AI or to its earlier names. Built from the
+// same constants as the metadata above and llms.txt.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://suedeai.ai/#organization",
+      name: "Suede Labs AI",
+      url: "https://suedeai.ai",
+      founder: {
+        "@type": "Person",
+        name: "Jason Colapietro",
+        url: "https://suedeai.ai/founder",
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: SITE_NAME,
+      description: SITE_DESCRIPTION,
+      publisher: { "@id": "https://suedeai.ai/#organization" },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${SITE_URL}/#software`,
+      name: SITE_NAME,
+      alternateName: ["Producer by Suede Labs", "TubeForge"],
+      url: SITE_URL,
+      applicationCategory: "MultimediaApplication",
+      operatingSystem: "Web browser",
+      description: SITE_DESCRIPTION,
+      publisher: { "@id": "https://suedeai.ai/#organization" },
+    },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${geist.variable} ${geistMono.variable} ${instrumentSerif.variable}`}>
-      <body>{children}</body>
+      <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

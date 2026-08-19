@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL = "https://producer.suedeai.ai";
+import { SITE_URL } from "./site";
+
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
