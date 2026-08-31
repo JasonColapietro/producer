@@ -1,4 +1,5 @@
 import { ensureOwnerChannel, jobFinals, jobScripts, jobThumbnails, listJobs } from "@/lib/data";
+import { publicJobError } from "../lib/job-error";
 import SiteNav from "./components/SiteNav";
 import { approveJob, createVideo, retryJob } from "./actions";
 
@@ -134,7 +135,7 @@ export default async function Dashboard() {
                     <div className="topic">
                       <span className="mode-tag">{j.mode}</span>{" "}
                       {j.options?.visuals === "ai" && <span className="mode-tag">AI video</span>}{" "}
-                      {j.status === "failed" ? <span className="err">{j.error}</span> : <span className="stage">stage: {j.stage}</span>}
+                      {j.status === "failed" ? <span className="err">{publicJobError(j.error)}</span> : <span className="stage">stage: {j.stage}</span>}
                     </div>
                     {(j.status === "processing" || j.status === "publishing") && (
                       <div className="progress" aria-hidden>
