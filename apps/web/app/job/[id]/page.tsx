@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { publicJobError } from "../../../lib/job-error";
 import { db, schema } from "@producer/core/web";
 import { eq } from "drizzle-orm";
 import CopyButton from "./CopyButton";
@@ -145,7 +146,7 @@ export default async function JobDetailPage({
               fontFamily: "monospace",
             }}
           >
-            {job.error}
+            {publicJobError(job.error)}
           </p>
         </div>
       )}
