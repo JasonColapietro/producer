@@ -20,12 +20,17 @@ interface ScriptDoc {
   scenes?: ScriptScene[];
 }
 
+export const metadata = { robots: { index: false, follow: false } };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default async function JobDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  if (!UUID.test(id)) notFound();
 
   // Load job
   const [job] = await db()

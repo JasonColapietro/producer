@@ -1,6 +1,7 @@
 import { db, runAutopilotTick, schema } from "@producer/core/web";
 import { sql } from "drizzle-orm";
 import { NextResponse, type NextRequest } from "next/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -8,11 +9,11 @@ export const maxDuration = 300;
 /**
  * Vercel cron tick (daily on Hobby). Runs autopilot: each due content plan
  * refills its topic backlog from its niche and enqueues `perDay` jobs, which the
- * always-on Render worker then renders. Also reports queue health. Locked by CRON_SECRET.
+ * always-on Render worker then renders. Also reports queue health. Locked by CRON_SECRET;
+ * an unset secret answers 401 rather than opening the route.
  */
 export async function GET(req: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!isCronAuthorized(req.headers.get("authorization"), process.env.CRON_SECRET)) {
     return new NextResponse("unauthorized", { status: 401 });
   }
 

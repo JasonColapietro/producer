@@ -6,7 +6,12 @@ import { put } from "@vercel/blob";
 const { jobs, assets } = schema;
 
 export async function POST(req: NextRequest) {
-  const form = await req.formData();
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    return NextResponse.json({ error: "multipart form body required" }, { status: 400 });
+  }
   const id = String(form.get("id") ?? "").trim();
   const file = form.get("audio");
 
