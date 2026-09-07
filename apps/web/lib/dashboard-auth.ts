@@ -3,6 +3,27 @@
 // credits, so an unset secret locks everything rather than opening it.
 export type AuthResult = "ok" | "missing-secret" | "unauthorized";
 
+// Seconds a crawler should wait before re-requesting a locked path. The lock
+// clears when the operator sets DASHBOARD_SECRET in the Vercel project env, so
+// there is no scheduled end: a day is long enough to stop crawlers hammering a
+// gate that will still be shut, and short enough that the host is re-checked
+// promptly once the secret lands.
+export const LOCKED_RETRY_AFTER_SECONDS = 86400;
+
+// Headers for the 503 the gate returns when no secret is configured. RFC 9110
+// asks a 503 to say when to come back; without Retry-After a crawler has to
+// guess, and a 503 that never explains itself eventually reads as a dead host.
+//
+// Frozen because this is module state in an edge runtime: a warm isolate
+// serves many requests from one copy, so a later `headers["x-whatever"] = ...`
+// on the way into a response would persist for every subsequent request until
+// the next cold start. Freezing turns that into a visible failure instead of a
+// leak on an auth-adjacent response.
+export const LOCKED_RESPONSE_HEADERS: Readonly<Record<string, string>> = Object.freeze({
+  "cache-control": "no-store",
+  "retry-after": String(LOCKED_RETRY_AFTER_SECONDS),
+});
+
 const PUBLIC_EXACT = new Set([
   "/robots.txt",
   "/sitemap.xml",
