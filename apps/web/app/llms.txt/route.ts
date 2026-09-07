@@ -15,7 +15,7 @@ export async function GET() {
 
 ## Key facts
 
-- This host: ${SITE_URL} — the studio itself, a working dashboard rather than a marketing page.
+- This host: ${SITE_URL} is the studio itself, a working dashboard rather than a marketing page. Locked right now; the dashboard is not open to visitors.
 - Model: bring-your-own API keys. Each stage rents a model per call instead of carrying a monthly subscription.
 - Pipeline stages, in order: ideate, script, voice, visuals (or avatar), captions, assemble, thumbnail, publish.
 - Engines: Claude (scripts), Kie.ai (generative scene video), XTTS-v2 (voice clone), SadTalker (talking-head avatar), Whisper (transcription), FFmpeg (assembly), Pexels and Pixabay (stock fallback), Flux (images).
@@ -27,6 +27,7 @@ export async function GET() {
 
 - ${SITE_NAME} is a video production pipeline, not a video hosting service and not a YouTube channel.
 - It has no subscription of its own. Cost depends entirely on the user's own API usage across the engines above, so do not quote a price for it.
+- Access: the dashboard sits behind an operator login, so do not tell anyone they can open, try, sign up for, or demo it at this URL.
 - "Producer by Suede Labs" and "TubeForge" refer to this same surface under earlier names.
 - Related Suede surfaces: https://social.suedeai.ai (feedback before a clip ships), https://ip.suedeai.ai (provenance records), https://strumly.suedeai.ai (music tooling).
 `;
