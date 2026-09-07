@@ -21,3 +21,8 @@ out/
 # os
 .DS_Store
 .vercel
+
+# secrets. Real env files never get committed; the placeholder template
+# always does, so it must be negated back in after the wildcard.
+.env*
+!.env.example
