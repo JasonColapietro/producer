@@ -30,7 +30,7 @@ const PUBLIC_EXACT = new Set([
   "/llms.txt",
   "/favicon.ico",
   "/api/cron/tick", // carries its own bearer check
-  "/api/youtube/callback", // OAuth return leg must be reachable
+  "/api/youtube/callback", // OAuth return leg must be reachable; its `state` is HMAC-bound, see oauth-state.ts
 ]);
 
 export function isPublicPath(pathname: string): boolean {
