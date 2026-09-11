@@ -1,7 +1,7 @@
 # Plan: lock down the producer dashboard and cron tick
 
 Objective:        No anonymous visitor can queue renders, edit plans, drive the autopilot tick, or get job transcripts indexed on producer.suedeai.ai.
-Source truth:     /Users/jason/code/suede-seo-run-2026-09-02/reports/audits/producer.suedeai.ai.md findings 1, 2, 5, 6 (audit 2026-09-02); operator instruction "lock down producer and discovery first".
+Source truth:     ~/code/suede-seo-run-2026-09-02/reports/audits/producer.suedeai.ai.md findings 1, 2, 5, 6 (audit 2026-09-02); operator instruction "lock down producer and discovery first".
 Executing skill:  suede-execute-plan (inline, single builder)
 Global constraints:
                   "READ-ONLY on sources/" (the run folder rule; this work happens in worktrees/producer-lockdown, not sources/)
