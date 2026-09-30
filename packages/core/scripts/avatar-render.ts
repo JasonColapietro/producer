@@ -24,7 +24,7 @@ try {
 const FACE = process.env.FACE;
 const VOICE = process.env.VOICE;
 const SCENES = Number(process.env.SCENES ?? 3); // cap for a cheap first test
-const topic = process.argv[2] ?? "Why Suede Labs AI lets musicians own their sound like a tech company owns its code";
+const topic = process.argv[2] ?? "Why Suede AI lets musicians own their sound like a tech company owns its code";
 
 for (const [k, v] of Object.entries({ ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY, REPLICATE_API_TOKEN: process.env.REPLICATE_API_TOKEN, FACE, VOICE })) {
   if (!v) {

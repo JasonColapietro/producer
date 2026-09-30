@@ -43,7 +43,7 @@ export const metadata: Metadata = {
 };
 
 // The host published no structured data at all, so nothing machine-readable
-// tied "Suede Cinema" to Suede Labs AI or to its earlier names. Built from the
+// tied "Suede Cinema" to Suede AI or to its earlier names. Built from the
 // same constants as the metadata above and llms.txt.
 const jsonLd = {
   "@context": "https://schema.org",
@@ -51,7 +51,7 @@ const jsonLd = {
     {
       "@type": "Organization",
       "@id": "https://suedeai.ai/#organization",
-      name: "Suede Labs AI",
+      name: "Suede AI",
       url: "https://suedeai.ai",
       founder: {
         "@type": "Person",
