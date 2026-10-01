@@ -43,7 +43,7 @@ async function probe(path: string): Promise<number> {
   return Number.parseFloat(out.trim()) || 3;
 }
 
-const topic = process.argv[2] ?? "What Suede Labs AI is and why creator-owned, programmable IP matters for musicians";
+const topic = process.argv[2] ?? "What Suede AI is and why creator-owned, programmable IP matters for musicians";
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error("Set ANTHROPIC_API_KEY");
   process.exit(1);

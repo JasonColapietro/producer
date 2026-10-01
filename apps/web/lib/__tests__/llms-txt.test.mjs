@@ -43,6 +43,6 @@ test("no sentence claims the host is available without also saying it is locked"
 
 test("llms.txt still identifies the product and its owner", () => {
   assert.match(body, /# Suede Cinema/);
-  assert.match(body, /Suede Labs AI/);
+  assert.match(body, /Suede AI/);
   assert.match(body, /producer\.suedeai\.ai/);
 });
