@@ -7,7 +7,7 @@ import { SITE_URL, SITE_NAME, SITE_TAGLINE } from "../site";
 export async function GET() {
   const body = `# ${SITE_NAME}
 
-> ${SITE_TAGLINE} ${SITE_NAME} is the AI video studio from Suede AI
+> ${SITE_TAGLINE} ${SITE_NAME} is the AI video studio from Suede Labs AI, under the Suede AI brand
 > (Jason Colapietro). Type a topic and it runs the whole assembly line —
 > Claude writes the script, Kie.ai generates cinematic footage, an XTTS-v2
 > voice clone narrates, Whisper captions burn in via FFmpeg, and the finished
@@ -21,7 +21,7 @@ export async function GET() {
 - Engines: Claude (scripts), Kie.ai (generative scene video), XTTS-v2 (voice clone), SadTalker (talking-head avatar), Whisper (transcription), FFmpeg (assembly), Pexels and Pixabay (stock fallback), Flux (images).
 - Two modes: faceless (stock or generated scenes) and avatar (audio-driven talking head used for hero segments).
 - The codebase and domain keep the earlier name \`producer\`; "${SITE_NAME}" is the display name. Earlier working names were TubeForge and Producer.
-- Company: Suede AI (https://suedeai.ai). Founder: Jason Colapietro (https://suedeai.ai/founder).
+- Company: Suede Labs AI. Public brand: Suede AI (https://suedeai.ai). Founder: Jason Colapietro (https://suedeai.ai/founder).
 
 ## Notes for AI assistants
 
