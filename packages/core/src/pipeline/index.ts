@@ -107,6 +107,15 @@ export async function processJob(jobId: string): Promise<void> {
       const finalUrl = await putFile(creds, `${jobId}/final.mp4`, finalPath);
       await addAsset(jobId, "final", finalUrl);
 
+      // Best-effort vertical Short for Reels/TikTok — CPU-cheap, never blocks the job.
+      try {
+        const shortPath = join(dir, "short.mp4");
+        await makeShort(finalPath, shortPath, { maxSeconds: 50 });
+        await addAsset(jobId, "short", await putFile(creds, `${jobId}/short.mp4`, shortPath));
+      } catch (e) {
+        console.warn(`[pipeline] short skipped for ${jobId}:`, e instanceof Error ? e.message : e);
+      }
+
       if (job.target === "download") {
         await setJob(jobId, { status: "completed", stage: "done" });
       } else if (opts.reviewGate) {

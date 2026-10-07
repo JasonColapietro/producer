@@ -60,6 +60,7 @@ export default async function JobDetailPage({
   }
 
   const finalAsset = latestAsset("final");
+  const shortAsset = latestAsset("short");
   const thumbnailAsset = latestAsset("thumbnail");
   const scriptAsset = latestAsset("script");
 
@@ -167,6 +168,28 @@ export default async function JobDetailPage({
           />
           <a className="btn btn-sm" href={finalAsset.url} download>
             Download MP4
+          </a>
+        </section>
+      )}
+
+      {/* Short (9:16 vertical cut) */}
+      {shortAsset && (
+        <section className="card" style={{ marginBottom: 20 }}>
+          <h2>Short (9:16)</h2>
+          <video
+            controls
+            src={shortAsset.url}
+            style={{
+              width: "100%",
+              maxWidth: 260,
+              borderRadius: 8,
+              background: "#000",
+              display: "block",
+              marginBottom: 12,
+            }}
+          />
+          <a className="btn btn-sm" href={shortAsset.url} download>
+            Download Short
           </a>
         </section>
       )}

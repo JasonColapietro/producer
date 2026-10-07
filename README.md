@@ -81,7 +81,7 @@ pnpm worker:dev                 # the pipeline worker
 
 In the dashboard: queue a topic and pick **Faceless** or **Avatar** + a destination. By default it builds the MP4 for you to **download** (and a 9:16 Short); choose **YouTube** (one-time OAuth) to auto-publish instead.
 
-For avatar / personal-brand mode, set the channel's `defaults.voiceRefUrl` (a ~10s clip of your voice) and `defaults.avatarImageUrl` (a portrait). For faceless, set `STOCK_VOICE_REF_URL` to any neutral narrator clip.
+For avatar / personal-brand mode, set the channel's `defaults.voiceRefUrl` (a ~10s clip of your voice) and `defaults.avatarImageUrl` (a portrait). For faceless, set `STOCK_VOICE_REF_URL` to any neutral narrator clip. For voiceover mode (you record your own audio, the pipeline lipsyncs it onto a base clip), set the channel's `defaults.voiceoverVideoUrl` or fall back to `VOICEOVER_BASE_VIDEO_URL` — one of the two is required or the job fails once you upload audio.
 
 ## Deploy
 
@@ -133,4 +133,4 @@ When the master toggle is off or the interval hasn't elapsed, the cron route sti
 ## Roadmap
 
 - **Multi-tenant / Stripe billing**: auth + per-customer encrypted `channels.secrets` (schema already supports it) + usage-based billing on the orchestration.
-- **Shorts**: the `short` asset kind is already in the schema; auto-cutting 9:16 clips from each long-form master is a pipeline addition.
+- ~~**Shorts**: the `short` asset kind is already in the schema; auto-cutting 9:16 clips from each long-form master is a pipeline addition.~~ Done — every render mode auto-cuts a blurred-letterbox 9:16 Short (first 50s, best-effort) and it's stored as a `short` asset and shown on the job details page.
