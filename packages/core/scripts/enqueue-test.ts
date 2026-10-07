@@ -18,9 +18,11 @@ if (!channel) {
   process.exit(1);
 }
 
+const topic = process.argv[2] ?? "Why do bicycles stay upright while moving";
+
 const job = await enqueueJob({
   channelId: channel.id,
-  topic: "Why octopuses have three hearts and blue blood",
+  topic,
   mode: "faceless",
   target: "download",
   options: { visuals: "ai", privacy: "private" },
