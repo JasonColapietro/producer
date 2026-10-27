@@ -12,6 +12,9 @@ test('valid audio upload keeps a safe extension independent of filename', async 
   assert.equal(voiceoverExtension(parsed.get('audio')), 'mp3');
 });
 test('rejects non-audio and empty files', () => {
+  for (const type of ['constructor', '__proto__']) {
+    assert.throws(() => voiceoverExtension(new File(['audio'], 'clip.mp3', { type })), { status: 415 });
+  }
   assert.throws(() => voiceoverExtension(new File(['html'], 'a.html', { type: 'text/html' })), { status: 415 });
   assert.throws(() => voiceoverExtension(new File([], 'a.wav', { type: 'audio/wav' })), { status: 413 });
 });

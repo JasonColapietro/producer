@@ -11,7 +11,8 @@ export class UploadError extends Error {
 }
 export function voiceoverExtension(file: File): string {
   if (file.size === 0 || file.size > MAX_VOICEOVER_BYTES) throw new UploadError('Audio must contain data and be at most 4 MiB', 413);
-  const extension = EXTENSIONS[file.type.toLowerCase()];
+  const type = file.type.toLowerCase();
+  const extension = Object.hasOwn(EXTENSIONS, type) ? EXTENSIONS[type] : undefined;
   if (!extension) throw new UploadError('Use an MP3, WAV, M4A, OGG, FLAC or WebM audio file', 415);
   return extension;
 }

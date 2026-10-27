@@ -68,3 +68,18 @@ test('authenticated valid audio retains the existing upload and queue behavior',
     oldToken === undefined ? delete process.env.BLOB_READ_WRITE_TOKEN : process.env.BLOB_READ_WRITE_TOKEN = oldToken;
   }
 });
+
+test('inherited MIME names are rejected before database or blob access', async () => {
+  const previous = process.env.DASHBOARD_SECRET;
+  process.env.DASHBOARD_SECRET = 'unit-secret';
+  try {
+    for (const type of ['constructor', '__proto__']) {
+      const form = new FormData(); form.set('id', 'job-1'); form.set('audio', new File(['audio'], 'clip.mp3', { type }));
+      const h = handler();
+      const response = await h.post(new Request(url, { method: 'POST', headers: { authorization: basic }, body: form }));
+      assert.equal(response.status, 415);
+      assert.equal(h.databaseCalls(), 0);
+      assert.equal(h.uploads.length, 0);
+    }
+  } finally { previous === undefined ? delete process.env.DASHBOARD_SECRET : process.env.DASHBOARD_SECRET = previous; }
+});
