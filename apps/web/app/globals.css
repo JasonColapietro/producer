@@ -489,3 +489,8 @@ button:active, .btn:active { transform: scale(0.99); }
 @media (max-width: 560px) {
   .ecosystem { grid-template-columns: 1fr; }
 }
+
+/* Product attribution shares the control-room typography and wraps on phones. */
+.topbar { flex-wrap: wrap; }
+.founder-credit { flex-basis: 100%; margin: 0 0 12px; color: var(--text-muted); font-size: 14px; }
+.founder-credit a { color: var(--text-primary); font-weight: 600; text-underline-offset: 4px; }

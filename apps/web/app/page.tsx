@@ -160,6 +160,7 @@ export default async function Dashboard() {
                         <form action="/api/voiceover" method="POST" encType="multipart/form-data">
                           <input type="hidden" name="id" value={j.id} />
                           <input type="file" name="audio" accept="audio/*" required style={{ fontSize: "0.75rem" }} />
+                          <span className="hint">MP3, WAV, M4A, OGG, FLAC or WebM audio. Up to 4 MiB.</span>
                           <button className="btn btn-sm" type="submit">Upload voiceover</button>
                         </form>
                       </>

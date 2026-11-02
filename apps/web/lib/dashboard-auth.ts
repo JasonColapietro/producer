@@ -60,3 +60,11 @@ export function checkDashboardAuth(authorization: string | null, secret: string 
   const password = colon === -1 ? "" : decoded.slice(colon + 1);
   return timingSafeEqual(password, secret) ? "ok" : "unauthorized";
 }
+
+/** Basic credentials are sent by browsers automatically; reject cross-site writes. */
+export function isSameOriginMutation(request: Request): boolean {
+  if (['GET', 'HEAD', 'OPTIONS'].includes(request.method.toUpperCase())) return true;
+  if (request.headers.get('sec-fetch-site') === 'cross-site') return false;
+  const origin = request.headers.get('origin');
+  return origin === null || origin === new URL(request.url).origin;
+}

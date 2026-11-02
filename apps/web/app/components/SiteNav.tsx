@@ -20,6 +20,10 @@ export default function SiteNav({ active, channelName }: SiteNavProps) {
           Autopilot
         </a>
       </nav>
+      <p className="founder-credit">
+        A product from <a href="https://suedeai.app">SuedeAI.app</a>
+        {" · Founded by "}<a href="https://suedeai.ai/founder">Jason Colapietro</a>
+      </p>
     </header>
   );
 }
