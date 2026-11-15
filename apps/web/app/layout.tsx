@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "./site";
@@ -95,6 +96,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         {children}
+        {/* Light · Dark · AI agent view switch shared by every Suede site (suedeai.ai/agent-view.js). */}
+        <Script src="https://suedeai.ai/agent-view.js" strategy="lazyOnload" />
       </body>
     </html>
   );
